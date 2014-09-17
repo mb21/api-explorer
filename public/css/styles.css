@@ -1,0 +1,90 @@
+ul {
+    padding-left: 1.1em;
+}
+a {
+    cursor: pointer;
+}
+code {
+    color: grey;
+    background-color: transparent;
+}
+.topBtn{
+    float: right;
+    margin-top: 20px;
+    margin-left: 5px;
+}
+div.loading {
+    margin-top: 2em;
+}
+button.loading, button.loading:hover, button.loading:focus, button.loading:active {
+    background-color: white;
+    color: black;
+}
+.loading {
+    background: url('/css/loader.gif') no-repeat center;
+    min-height: 15px;
+}
+
+.config {
+    background-color: #fdfdfd;
+    box-shadow: 3px 3px 5px 6px lightgray;
+    width: 55%;
+}
+
+.config, .browse {
+    float: left;
+    height: 100vh;
+    overflow: scroll;
+}
+.browse {
+    width: 45%;
+}
+.browse > .row {
+    margin-left: 0;
+}
+
+.jsonView {
+    margin-bottom: 20px;
+}
+.results .jsonView {
+    max-height: 25em;
+    overflow: scroll;
+}
+ul.results {
+    list-style-type: none;
+    padding-left: 0;
+}
+.resultItem {
+    box-shadow: 2px 2px 3px 3px lightgray;
+    margin: 15px 0;
+    padding: 10px 5px 5px 1px;
+}
+.resultItem h4 {
+    margin-top: 5px;
+}
+.mkEpBtn {
+    margin-bottom: 10px;
+}
+download-links ul {
+    list-style-type: none;
+    margin-top: 10px;
+    padding-left: 0;
+}
+download-links li {
+    margin-bottom: 5px;
+}
+.epLinks {
+    margin-top: 10px;
+}
+.browse div > p.treeDirective {
+    margin-top: 15px;
+}
+a.setResults {
+    font-style: normal;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: #428bca !important;
+    margin-left: 5px;
+}
+.jsonView > json > .jsonItemDesc > a.setResults {
+    display: none;
+}

@@ -1,0 +1,29 @@
+{
+  "name": "apicrawler",
+  "version": "0.0.1",
+  "description": "A Web-based Tool to Semi-automatically Import Data from Generic REST APIs",
+  "main": "index.js",
+  "author": "Mauro Bieg",
+  "license": "Apache License 2.0",
+  "dependencies": {
+    "URIjs": "^1.13.2",
+    "body-parser": "^1.4.3",
+    "cors": "^2.4.1",
+    "express": "4.x",
+    "httpinvoke": "^1.3.0",
+    "jsonld": "^0.2.13",
+    "jspath": "^0.2.12",
+    "mongojs": "^0.13.0",
+    "q": "^1.0.1",
+    "underscore": "^1.6.0",
+    "uritemplate": "^0.3.4"
+  },
+  "devDependencies": {
+    "browserify": "^4.2.0"
+  },
+  "scripts": {
+    "test": "mocha",
+    "start": "node server.js",
+    "preinstall": "cd public; bower install"
+  }
+}

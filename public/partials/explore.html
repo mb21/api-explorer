@@ -1,0 +1,198 @@
+<div class="container-fluid config">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Config</h2>
+            <hr>
+        </div>
+    </div>
+
+    <!-- APIs -->
+    <div class="row">
+        <div class="col-md-2">
+            <h3>APIs</h3>
+            <collection collection="state.apis" default-element="defaultApiDesc" level="1"></collection> 
+        </div>
+        <div class="col-md-9" ng-show="currentApiDesc()">
+
+            <!-- Setup form -->
+            <form class="form-horizontal" role="form">
+                <form-text label="API ID" level-id="1" placeholder="no spaces or special chars" model="currentApiDesc()._id"></form-text>
+                <form-text label="API Label" placeholder="human readable" model="currentApiDesc().label"></form-text>
+                <form-text label="Description" placeholder="Description of the API" model="currentApiDesc().description"></form-text>
+                <form-text label="API version" placeholder="API version" model="currentApiDesc().version"></form-text>
+                <form-text label="Base URL" placeholder="Enter base URL of the API endpoint"
+                    model="currentApiDesc().baseURL"></form-text>
+                <form-object label="Parameters" model="currentApiDesc().parameters"></form-object>
+                <form-text label="Links regex" placeholder="e.g. ^http(s?)://.* — If empty, Base URL will be used."
+                    model="currentApiDesc().linksRegex"></form-text>
+                <button class="btn btn-danger" ng-click="deleteCurrentApi()" ng-class="deletingApi">Delete API</button>
+                <button class="btn btn-success" ng-click="saveCurrentApi()" ng-class="savingApi">Save API</button>
+                <a class="btn btn-default" download ng-href="/swagger/{{ currentApiDesc()._id }}">Download Swagger</a>
+                <button class="btn btn-default" ng-click="crawl(true)">Crawl</button>
+                <button class="btn btn-primary" ng-click="browseWithoutEp( currentApiDesc().baseURL )">Browse</button>
+            </form>
+
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <hr>
+        </div>
+    </div>
+
+
+    <!-- Endpoints -->
+    <div class="row" ng-show="currentApiDesc()">
+        <div class="col-xs-2">
+            <h3>Endpoints</h3>
+            <collection collection="currentApiDesc()._embedded['ns:endpoints']" default-element="defaultEndpoint" level="2"
+                secondary-collection="currentApiDesc()._links['ns:cachedCollections']">
+            </collection> 
+        </div>
+
+        <div class="col-xs-9" ng-show="currentEndpoint()">
+            <form class="form-horizontal" role="form">
+                <form-text label="Endpoint ID" level-id="2" placeholder="no spaces or special chars" model="currentEndpoint()._id"></form-text>
+                <form-text label="Endpoint Label" placeholder="human readable" model="currentEndpoint().label"></form-text>
+                <form-text label="URI Template" placeholder="URL with optional URI Template {variables}" model="currentEndpoint().url"></form-text>
+                <form-object label="Defaults for variables" model="currentEndpoint().variables" pagination="!isSingleton()">
+                </form-object>
+                <form-text label="Description" placeholder="Describe what data this endpoint returns."
+                    model="currentEndpoint().description"></form-text>
+                <form-select label="Result cardinality" model="currentEndpoint().cardinality" nullable="false"
+                    options="it.id as it.label for it in [{id: 1, label:'Singleton Entity'}, {id: 0, label:'Collection of Entities'}]"></form-select>
+                <form-text label="Results JSPath" placeholder="JSPath expression to extract results from envelope"
+                    model="currentEndpoint().resultsPath"></form-text>
+                <form-select label="Result Entity Class" model="currentEndpoint().resultType" nullable="true"
+                    options="class._id as class.label for class in $parent.currentApiDesc().entityClasses"></form-select>
+
+                <button class="btn btn-danger" ng-click="deleteCurrentEndpoint()">Delete Endpoint</button>
+                <button class="btn btn-default" ng-click="crawl(false)">Crawl</button>
+                <button class="btn btn-primary" ng-click="queryEndpoint()">Browse</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <hr>
+        </div>
+    </div>
+
+    <!-- EntityClasses -->
+    <div class="row" ng-show="currentApiDesc()">
+        <div class="col-xs-2">
+            <h3>Entity Classes</h3>
+            <collection collection="currentApiDesc().entityClasses"
+                default-element="defaultEntityClass" level="0"></collection> 
+        </div>
+
+        <div class="col-xs-9" ng-show="currentEntityClass()">
+            <form class="form-horizontal" role="form">
+                <form-text label="Entity Class ID" level-id="0" placeholder="URI-friendly ID"
+                    model="currentEntityClass()._id"></form-text>
+                <form-text label="Entity Class Label" placeholder="Human readable label"
+                    model="currentEntityClass().label"></form-text>
+                <form-text label="Title JSPath" placeholder="JSPath expression to extract the title of the entity"
+                    model="currentEntityClass().titlePath"></form-text>
+                <nested-form-object label="Links" model="currentEntityClass().links"></nested-form-object>
+
+                <button class="btn btn-danger" ng-click="deleteCurrentEntityClass()">Delete Entity Class</button>
+            </form>
+        </div>
+    </div>
+
+
+</div> <!-- div.config END -->
+
+<div class="container-fluid browse">
+    <div class="row">
+
+        <div ng-show="state.url == 'crawl'">
+            <tree tree="tree"></tree>
+        </div>
+
+        <div class="col-md-12" ng-show="cachedCollectionRes">
+            <div ng-class="queryLoading"></div>
+            <button class="btn btn-primary topBtn" ng-class="updatingAll" ng-click="updateAll()">Update and save all</button>
+            <h2>{{ cachedCollectionRes._links.self.title }}</h2>
+            <input type="text" class="form-control" ng-model="searchFilter" placeholder="Fulltext filter" />
+            <ul class="results">
+                <li ng-repeat="res in cachedCollectionRes._embedded['ns:results'] | filter:searchFilter" class="resultItem row">
+                    <div class="col-md-4">
+                    <h4>{{ res._links.self.title }}</h4>
+                        <ul>
+                            <li ng-repeat="(rel, val) in res._links">
+                                <a ng-href="{{ browse(val.href) }}" title="{{val.href}}">{{rel}}</a>
+                            </li>
+                        </ul>
+                        <download-links json="res" url="res._links.self.href" ec-id="currentCachedCollection()"
+                            deletable="true">
+                        </download-links>
+                    </div>
+                    <div class="jsonView col-md-8">
+                        <json child="res" type="object" default-collapsed="true"></json>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="col-md-12" ng-show="state.url != '_' && state.url != 'crawl'">
+            <h2>Browse</h2>
+            <hr>
+
+            <p><input type="text" ng-model="state.url" ng-enter="browseWithoutEp(state.url)" class="form-control" /></p>
+            <!--
+            <p>Status: {{response.status}}</p>
+            <p>Content-type: {{ response.headers()['content-type'] }}</p>
+            -->
+            <div ng-class="queryLoading">{{errMsg}}</div>
+
+            <div ng-show="response">
+                <button class="btn btn-primary mkEpBtn"
+                    ng-show="!isEndpoint()"
+                    ng-click="addEndpoint()">Make Endpoint</button>
+
+                <h3 ng-show="isEndpoint() && !isSingleton()">{{ currentEndpoint().label }}</h3>
+                <h3 ng-show="isEndpoint() && isSingleton()">{{ response.data._links.self.title }}</h3>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="epLinks">
+                            <li ng-repeat="(rel, val) in response.data._links" ng-show="val.href">
+                                <a ng-href="{{ browse(val.href) }}" title="{{val.href}}">{{rel}}</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <download-links class="col-md-6"
+                        json="response.data" url="getServerPath()" ec-id="isSingleton() ? currentEndpoint().resultType : false">
+                    </download-links>
+                </div>
+                <div class="jsonView">
+                    <json child="response.data" type="object" default-collapsed="true"
+                        showsetresults="isEndpoint() && (!isSingleton() || currentEndpoint().resultsPath.length === 0)"></json>
+                </div>
+
+                <ul class="results">
+                    <li ng-repeat="res in response.data._embedded['ns:results']" class="resultItem row">
+                        <div class="col-md-4">
+                        <h4>{{ res._links.self.title }}</h4>
+                            <ul>
+                                <li ng-repeat="(rel, val) in res._links">
+                                    <a ng-href="{{ browse(val.href) }}" title="{{val.href}}">{{rel}}</a>
+                                </li>
+                            </ul>
+                            <download-links json="res" url="res._links.self.href" ec-id="currentEndpoint().resultType">
+                            </download-links>
+                        </div>
+                        <div class="jsonView col-md-8">
+                            <json child="res" type="object" default-collapsed="true"></json>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>

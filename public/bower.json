@@ -1,0 +1,13 @@
+{
+  "name": "api crawler",
+  "version": "0.0.0",
+  "description": "A Web-based Tool to Semi-automatically Import Data from Generic REST APIs",
+  "repository": "",
+  "license": "Apache License, Version 2.0",
+  "dependencies": {
+      "bootstrap": "3.x.x",
+      "angular": "1.2.x",
+      "angular-route": "1.2.x",
+      "JSONedit": "file:///Users/maurobieg/code/semCMS/code/JSONedit/.git#gh-pages"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "JSONedit",
+  "description": "User friendly, visual JSON editor built as an AngularJS directive. Provides a basic GUI to edit JSON.",
+  "repository": "https://github.com/mb21/JSONedit",
+  "homepage": "http://mb21.github.io/JSONedit/",
+  "license": "MIT License",
+  "main": [
+    "css/styles.css",
+    "js/directives.js"
+  ],
+  "ignore": [
+    "index.html",
+    "js/JSONedit.js"
+  ],
+  "dependencies": {
+    "bootstrap": "3.x.x",
+    "angular": "1.2.x",
+    "angular-ui-sortable": "0.12.x"
+  },
+  "_release": "cf3908a948",
+  "_resolution": {
+    "type": "branch",
+    "branch": "gh-pages",
+    "commit": "cf3908a9485a3c98d587675ef1cb7c6cae8a150e"
+  },
+  "_source": "file:///Users/maurobieg/code/semCMS/code/JSONedit/.git",
+  "_target": "gh-pages",
+  "_originalSource": "file:///Users/maurobieg/code/semCMS/code/JSONedit/.git"
+}
