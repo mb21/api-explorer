@@ -15,6 +15,7 @@
     "jspath": "^0.2.12",
     "mongojs": "^0.13.0",
     "q": "^1.0.1",
+    "silk-api-client": "^2.0.0",
     "underscore": "^1.6.0",
     "uritemplate": "^0.3.4"
   },
@@ -22,8 +23,8 @@
     "browserify": "^4.2.0"
   },
   "scripts": {
-    "test": "mocha",
-    "start": "node server.js",
-    "preinstall": "cd public; bower install"
+    "preinstall": "cd public; bower install",
+    "compile": "browserify apiService.js -o public/js/browserified.js",
+    "start": "node server.js"
   }
 }

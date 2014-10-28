@@ -149,6 +149,15 @@ apiService.wrapInTryCatch = function(fn, errCb, args) {
         }
     }
 };
+//
+apiService.delay = function(time) {
+    var deferred = Q.defer();
+    setTimeout(function(){
+        deferred.resolve();
+    }, time);
+    return deferred.promise;
+};
+
 apiService.buildUrl = function(url, params) {
     //see https://github.com/angular/angular.js/pull/3213
     var uri = URI(url);
@@ -519,7 +528,9 @@ apiService.crawl = function(apiDesc, url, progressCb) {
         i++;
         next = queue.shift();
         progressCb(globalTree);
-        return globalTree;
+        return apiService.delay(config.httpDelay).then( function(){
+            return globalTree;
+        });
     };
     var cleanName = function(url) {
         var uri = new URI( url.replace(new RegExp("^"+apiDesc.baseURL), '') );
@@ -610,6 +621,15 @@ apiService.swagger = function(apiDesc) {
     };
 };
 
+apiService.curies = function(apiDesc) {
+    return apiDesc.curies.map( function(cur){
+        return {
+            "name": cur.key,
+            "href": cur.val,
+            "templated": true
+        };
+    });
+};
 
 // Register module
 if (typeof window === 'undefined') {

@@ -8,6 +8,7 @@ var _u = require('underscore');
 
 var apiService = require('./apiService');
 var config = require('./config');
+var silkExport = require('./silkExport');
 
 var app = express();
 var db = mongojs.connect("apis", ["apis"]);
@@ -57,6 +58,27 @@ var getColNamesPromise = function(){
     });
     return deferred.promise;
 };
+
+
+app.post('/silkExport/:apiId/:ecId/', function(req, res){
+    db.apis.findOne( { _id: req.params.apiId }, function(err, apiDesc) {
+        if (err) {
+            res.send(500, err.message);
+        } else if (apiDesc == null) {
+            res.send(404);
+        } else if ( Object.keys(req.body).length === 0 || !(req.body instanceof Array) ) {
+            res.send(400, "Request body must be a JSON array.");
+        } else {
+            var ec = apiService.getEntityClass(apiDesc, req.params.ecId);
+            silkExport.go(req.body, ec, function() {
+                var json = {"status": "success"};
+                res.send(json);
+            }, function(err) {
+                res.send(500, err.message);
+            });
+        }
+    });
+});
 
 app.get('/swagger/:apiId', function(req, res){
     db.apis.findOne( { _id: req.params.apiId }, function(err, apiDesc) {
@@ -117,7 +139,7 @@ app.get('/api/:apiId/', function(req, res){
             res.send(404);
         } else {
             var json = fillApiDesc(apiDesc);
-            json._links.curies = config.curies;
+            json._links.curies = config.curies.concat( apiService.curies(apiDesc) );
             res.send(json);
         }
     });
@@ -155,7 +177,7 @@ app.put('/api/:apiId', function(req, res) {
                     }
                 });
             } else {
-                resJson._links.curies = config.curies;
+                resJson._links.curies = config.curies.concat( apiService.curies(apiDesc) );
                 res.send(resJson);
             }
         }
@@ -173,6 +195,7 @@ app.delete('/api/:apiId', function(req, res) {
 
 // if endpointId prefixed with a !, it's a cached collection
 // curl 'http://localhost:3000/api/rotten/!movie?sort=release_dates.theater&direction=-1'
+// curl 'http://localhost:3000/api/rotten/!movie?silkExport=1'
 app.get('/api/:apiId/!:ecId/', function(req, res){
     var ecId = req.params.ecId;
     var colName = req.params.apiId +"!"+ ecId;
@@ -188,20 +211,39 @@ app.get('/api/:apiId/!:ecId/', function(req, res){
         if (err) {
             res.send(500, err.message);
         } else {
-            //return cached collection
-            var json = {
-                "_links": {
-                    "self": {
-                        "href": config.host +"/"+ req.params.apiId +"/!"+ ecId +"/",
-                        "title": ecId + "Cache"
+            if ( req.query.silkExport === "1" ) {
+                //export to silk
+                db.apis.findOne( { _id: req.params.apiId }, function(err, apiDesc) {
+                    if (err) {
+                        res.send(500, err.message);
+                    } else if (apiDesc == null) {
+                        res.send(404);
+                    } else {
+                        var ec = apiService.getEntityClass(apiDesc, ecId);
+                        silkExport.go(docs, ec, function() {
+                            var json = {"status": "success"};
+                            res.send(json);
+                        }, function(err) {
+                            res.send(500, err.message);
+                        });
+                    }
+                });
+            } else {
+                //return cached collection
+                var json = {
+                    "_links": {
+                        "self": {
+                            "href": config.host +"/"+ req.params.apiId +"/!"+ ecId +"/",
+                            "title": ecId + "Cache"
+                        },
+                        "curies": config.curies
                     },
-                    "curies": config.curies
-                },
-                "_embedded": {
-                    "ns:results" : docs
-                }
-            };
-            res.send(json);
+                    "_embedded": {
+                        "ns:results" : docs
+                    }
+                };
+                res.send(json);
+            }
         }
     });
 });
@@ -319,7 +361,7 @@ app.get(/^\/api\/([a-zA-Z0-9-_]+)\/([a-zA-Z0-9-_]+)\/(.*)$/, function(req, res){
                             if (!slf.title) {
                                 slf.title = apiDesc.label;
                             }
-                            json._links.curies = config.curies;
+                            json._links.curies = config.curies.concat( apiService.curies(apiDesc) );
                             return json;
                         }, function(err){
                             res.send(500, err + "\n\n" + err.stack);
