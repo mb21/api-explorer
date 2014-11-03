@@ -1,10 +1,13 @@
 {
-  "name": "apicrawler",
-  "version": "0.0.1",
+  "name": "api-explorer",
+  "version": "0.1.0",
   "description": "A Web-based Tool to Semi-automatically Import Data from Generic REST APIs",
-  "main": "index.js",
+  "main": "server.js",
   "author": "Mauro Bieg",
+  "homepage": "https://github.com/mb21/api-explorer",
+  "repository" : { "type" : "git", "url" : "http://github.com/mb21/api-explorer.git"},
   "license": "Apache License 2.0",
+  "keywords": ["HAL", "Hypermedia API", "Data integration"],
   "dependencies": {
     "URIjs": "^1.13.2",
     "body-parser": "^1.4.3",
