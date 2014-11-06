@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <title>A Web-based Tool to Semi-automatically Import Data from Generic REST APIs</title>
+  <style type="text/css">
+header {
+    margin-bottom: 6em;
+    text-align: center;
+}
+.note::before {
+    content: "Note";
+    font-weight: bold;
+}
+.note {
+    background-color: #FFFFCC;
+    padding: 0.5em .8em;
+    padding: 2em;
+    margin: 0 -2em;
+}
+html, body {
+    font-family: Georgia, serif;
+    font-size: 18px;
+    line-height: 1.5em;
+    word-wrap: break-word;
+    margin: 0 1em;
+    hyphens: auto;
+    -moz-hyphens: auto;
+    -webkit-hyphens: auto;
+    -ms-hyphens: auto;
+}
+@media (min-width: 1000px) {
+    body {
+        width: 46em;
+        margin: 2.5em 4em;
+    }
+    h1:first-child {
+        margin-top: 3em;
+    }
+}
+nav a, h1 a, h2 a, h3 a, h4 a {
+    color: black;
+}
+a {
+    text-decoration: none;
+}
+ol, ul {
+    margin-left: 0;
+    padding-left: 0;
+}
+ul ul, ol ol, ol ul, ul ol {
+    padding-left: 1.3em;
+}
+pre {
+    line-height: 1.2em;
+    padding: 5px;
+    background-color: #EEEEEE;
+}
+code {
+    background-color: #EEEEEE;
+    white-space: pre;
+    max-width: 100%;
+    display: inline-block;
+}
+p code {
+    padding: 1px 5px 1px 5px;
+}
+h1, h2, h3, h4 {
+    font-family: Verdana, Helvetica, Arial, sans-serif;
+    margin-top: 2em;
+    margin-bottom: 1em;
+    line-height: 1.2em;
+}
+h1 {
+    font-size: 36px;
+}
+h2 {
+    font-size: 27px;
+}
+h3 {
+    font-size: 21px;
+}
+h4 {
+    font-size: 18px;
+}
+h1:not(:first-child) {
+    margin-top: 5em;
+}
+.citation > a {
+    color: #B99A00;
+}
+.citation-note {
+    position: absolute;
+    right: 1em;
+    background-color: #FFFFCC;
+    padding: 0 1em;
+    border: 1px solid black;
+    width: 60em;
+    max-width: 90%;
+}
+table td {
+    border-bottom: 1px solid lightgray;
+}
+table th:nth-of-type(2) {
+    width: 5em;
+}
+.hidden {
+    display: none;
+}
+img {
+    max-width: 100%;
+}
+figure {
+    margin: 1em 0;
+}
+dd > p {
+    margin-top: 0.1em;
+}
+</style>
+<script>
+    // make citations-popups
+    window.onload = function(){
+
+        // foreach citation block
+        [].forEach.call(document.getElementsByClassName('citation'), function(cit, i) {
+
+            // foreach reference in there
+            [].forEach.call( cit.getElementsByTagName("a"), function(a) {
+                var ref = a.getAttribute("href"); //with stock pandoc: getAttribute("data-cites")
+
+                //this relies on mb21/pandoc-citeproc
+                var bibPar = document.getElementById( ref.substring(1) ).getElementsByTagName("p")[0].cloneNode(true);
+
+                // create yellow citation-note
+                var div = document.createElement("div");
+                div.setAttribute("class", "citation-note hidden");
+                div.appendChild(bibPar);
+                cit.appendChild(div);
+
+                // toggle citation-note
+                var hidden = true;
+                a.onclick = function(e) {
+                    if (hidden) {
+                        div.setAttribute("class", "citation-note");
+                    } else {
+                        div.setAttribute("class", "citation-note hidden");
+                    }
+                    hidden = !hidden;
+                    return false;
+                };
+            });
+        });
+    };
+</script>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+</head>
+<body>
+<header>
+<h1 class="title">A Web-based Tool to Semi-automatically Import Data from Generic REST APIs</h1>
+<h3>Master Thesis – November 2014, Mauro Bieg</h3>
+</header>
+
+<section>
+<h4>Abstract</h4>
+<p>Most public Web APIs currently have no machine-readable documentation and are structurally rather diverse. Nonetheless, these APIs are often our best bet to access the valuable information they provide in a relatively structured manner. We introduce a tool which provides a web-based GUI to map any JSON-based REST-like API within minutes, and subsequently access the mapped APIs through a wrapper hypermedia API, and thus in a uniform manner. This enables even teams with very limited resources to keep track of dozens of Web APIs that frequently roll out new versions. </p>
+<h4>Acknowledgments</h4>
+<p>I would like to thank both Prof. Donald Kossmann and <a href="https://www.ethz.ch">ETH Zürich</a>, as well as Sebastiaan Visser and the entire <a href="https://silk.co">Silk</a> team, for providing me with the opportunity to work on this interesting problem. </p>
+<h4>Source Code</h4>
+<p>All the source code of our project is available under the Apache License Version 2.0. The version as of publication can be found under <a href="https://github.com/mb21/api-explorer/releases/tag/v0.1.0">www.github.com/mb21/api-explorer/releases/tag/v0.1.0</a> (commit <code>5fb12e80a2e3c4139613b0f15565b32446e19bb7</code>). </p>
+</section>
+
+<nav id="TOC">
+<h2>Contents</h2>
+<ul>
+<li><a href="#definitions-and-abbreviations">Definitions and Abbreviations</a></li>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#background">Background</a><ul>
+<li><a href="#rest">REST</a><ul>
+<li><a href="#the-rest-architectural-style">The REST Architectural Style</a></li>
+<li><a href="#media-types-generic-hypermedia-format-vs.-custom-media-types">Media Types: generic Hypermedia Format vs. custom Media Types</a></li>
+<li><a href="#hypermedia-apis">Hypermedia APIs</a></li>
+<li><a href="#rfc-5988-web-linking">RFC 5988: Web Linking</a></li>
+<li><a href="#hypermedia-formats">Hypermedia Formats</a></li>
+</ul></li>
+<li><a href="#interface-description-languages-idl">Interface Description Languages (IDL)</a></li>
+<li><a href="#inspecting-public-rest-apis">Inspecting public REST APIs</a><ul>
+<li><a href="#authentication">Authentication</a></li>
+<li><a href="#versioning">Versioning</a></li>
+<li><a href="#envelope">Envelope</a></li>
+<li><a href="#pagination">Pagination</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#related-work">Related Work</a></li>
+<li><a href="#implementation">Implementation</a><ul>
+<li><a href="#supporting-specifications">Supporting Specifications</a></li>
+<li><a href="#data-model-of-an-api">Data Model of an API</a></li>
+<li><a href="#accessing-the-data">Accessing the Data</a></li>
+<li><a href="#cached-collections">Cached Collections</a></li>
+<li><a href="#exporting-data-to-silk">Exporting data to Silk</a></li>
+<li><a href="#exporting-to-the-swagger-2.0-idl">Exporting to the Swagger 2.0 IDL</a></li>
+</ul></li>
+<li><a href="#evaluation">Evaluation</a><ul>
+<li><a href="#test-on-three-public-apis">Test on three public APIs</a></li>
+<li><a href="#comparison-with-soapui-and-postman">Comparison with SoapUI and Postman</a></li>
+<li><a href="#usability">Usability</a></li>
+<li><a href="#using-hypermedia">Using Hypermedia</a></li>
+</ul></li>
+<li><a href="#further-work">Further Work</a></li>
+<li><a href="#conclusion">Conclusion</a></li>
+</ul>
+</nav>
+
+<h2 id="definitions-and-abbreviations">Definitions and Abbreviations</h2>
+<dl>
+<dt>IANA</dt>
+<dd>The Internet Assigned Numbers Authority is a department of ICANN (Internet Corporation for Assigned Names and Numbers). ICANN is a nonprofit private American corporation.
+</dd>
+<dt>IRI</dt>
+<dd>Internationalized Resource Identifier as defined in <a href="https://tools.ietf.org/html/rfc3987">RFC 3987</a>. A IRI is basically a URI that is not limited to ASCII.
+</dd>
+<dt>RDF</dt>
+<dd>Resource Description Framework is “a framework for representing information in the Web” <span class="citation"><a href="#ref-rdf">(“RDF 1.1 Concepts and Abstract Syntax”)</a></span>. It uses sets of subject-predicate-object triples to express the relationships between resources, in effect forming a graph.
+</dd>
+<dt>RFC</dt>
+<dd>A Request for Comments is a publication of the Internet Engineering Task Force (IETF). Some RFCs are later adopted as Internet Standards.
+</dd>
+<dt>RPC</dt>
+<dd>Remote Procedure Call is a way of invoking a service on another computer over a network that follows the style of a local function call very closely.
+</dd>
+<dt>URI</dt>
+<dd>Uniform Resource Identifier as defined in <a href="http://tools.ietf.org/html/rfc3986">RFC 3986</a>
+</dd>
+<dt>URL</dt>
+<dd>Uniform Resource Locator as defined in <a href="http://tools.ietf.org/html/rfc3986">RFC 3986</a>. A URL is a URI that does not only uniquely identify a resource, but can also be used to locate it by dereferencing the URL.
+</dd>
+<dt>Web API</dt>
+<dd>In this thesis, the term “Web API” refers to an API that is exposed by a web server, usually via HTTP.
+</dd>
+<dt>WSDL</dt>
+<dd>Web Service Description Language is an XML-based interface description language that is used to describe the interface of a web service, usually used in conjunction with SOAP.
+</dd>
+<dt>SOAP</dt>
+<dd>Started in 1998, SOAP is an XML-based protocol specification for services and the messages they exchange. The model is conceptually very similar to the remote procedure call paradigm.
+</dd>
+<dt>UDDI</dt>
+<dd>Designed to integrate with SOAP, Universal Description Discovery and Integration is an XML-based mechanism to register and locate web services. 
+</dd>
+</dl>
+<h2 id="introduction">Introduction</h2>
+<p>We are interested in the problem of accessing and importing the information that is contained in the databases powering websites and public Web APIs.</p>
+<p>The SOAP ecosystem was rich in native and machine-friendly methods to describe and discover Web services (e.g. <a href="http://en.wikipedia.org/wiki/Web_Services_Description_Language">WSDL</a> and <a href="http://en.wikipedia.org/wiki/Universal_Description_Discovery_and_Integration">UDDI</a> respectively). However, among public Web APIs, SOAP has been superseded by what many feel is a simpler and leaner style of Web services: REST. The term was coined in 2000 by Roy Fielding in his dissertation. Soon all major public Web services proclaimed to be RESTful.</p>
+<p>For better or worse, the current de-facto standard of a public Web service is a REST API that talks JSON. The result is a dynamic and quickly changing bunch of Web APIs that are broadly speaking very similar (they all support JSON over HTTP), yet they vary widely in the crucial yet unstandardized details (e.g. how to find related resources, what part of the JSON is envelope and what the actual data, etc.). Furthermore, unlike SOAP services, they usually have no machine-readable documentation. This makes it very hard to write a generic tool to import data from a multitude of Web APIs into a user’s own database.</p>
+<p>What is more, most public Web APIs do not follow Fielding’s criteria for a RESTful service very closely. For example, few follow the HATEOAS principle—i.e. do not contain links to further resources. Instead, the API client has to rely on human-readable (i.e. non-machine-readable) documentation to know what further resources are available under what URL. Thus this information has to be hard-coded when the client code is written, and updated when the server changes, introducing tight coupling between the server and the client. Nonetheless, these REST APIs expose an unprecedented wealth of information in an at least superficially machine-readable format. As such, Web APIs are our best (and besides web scraping often only) way to get our hands on the information contained in many websites.</p>
+<p>The aim of this thesis is to build a tool with a web-based GUI to support a user to quickly import data from generic JSON REST APIs. The target user is possibly trained, but no computer scientist, so for example a data journalist. The first thing the user will have to do is to enter the URL of an API entry point into the tool. From thereon, he or she will be guided to navigate the API and construct a declarative representation of the API. Ultimately, the user can make use of this description by connecting to our tool’s HAL-compliant hypermedia wrapper Web API, thus accessing the mapped APIs through a uniform interface. </p>
+<h2 id="background">Background</h2>
+<h3 id="rest">REST</h3>
+<h4 id="the-rest-architectural-style">The REST Architectural Style</h4>
+<p>In his 2000 dissertation, Roy Thomas Fielding coined the term REST <span class="citation"><a href="#ref-fielding2000">(<span class="ref-contributor">Fielding</span> 2000, Abstract)</a></span>. While often misunderstood <span class="citation"><a href="#ref-fielding2008">(<span class="ref-contributor">Fielding</span> 2008a)</a></span>, his dissertation has nonetheless been very influential. As of today, there exist an abundance of Web APIs that claim to be RESTful, even though most of them don’t adhere to all the criteria listed by Fielding.</p>
+<p>In his dissertation, Fielding analyzed the architecture of the World Wide Web and generalized it to an architectural style for network-based application software. (“An architectural style is a named, coordinated set of architectural constraints.”) He called the architectural style that he arrived at <em>Representational State Transfer</em>—or REST for short.</p>
+<p>As introduced by Fielding <span class="citation"><a href="#ref-fielding2000">(<span class="ref-contributor">Fielding</span> 2000, Chapter 5)</a></span>, REST is an architectural style where the system adheres to the constraints listed below. They are squarely aimed at making REST suitable for Internet-scale distributed systems, which come with a unique set of challenges such as potentially heavy load (e.g. on a single resource), latency, and intermittent network failures.</p>
+<ol type="1">
+<li><p>There are distinct <strong>clients and servers</strong>.</p></li>
+<li><p>The system implements a <strong>stateless</strong> communication protocol between the client and the server, “such that each request from client to server must contain all of the information necessary to understand the request, and cannot take advantage of any stored context on the server. Session state is therefore kept entirely on the client.” This allows servers to free up resources, such as memory, after each request and thus communicate with many clients simultaneously with relatively little burden placed on the server. This is in contrast to architectural styles such as RPC which are less suited for the Internet-scale loads.</p></li>
+<li><p>The server can label responses as <strong>cacheable</strong> or non-cacheable. The client is free to reuse the response of cacheable responses in the future instead of sending the same request again.</p></li>
+<li><p>“The central feature that distinguishes the REST architectural style from other network-based styles is its emphasis on a <strong>uniform interface</strong> between components”, which includes the following:</p>
+<ul>
+<li><p>“The key abstraction of information in REST is a resource.” Anything that can be assigned a URL can be a <strong>resource</strong>: “a document or image, a temporal service (e.g. ‘today’s weather in Los Angeles’), a collection of other resources [or] a non-virtual object (e.g. a person)”. Note that REST isn’t constrained to CRUD-style APIs: also services, which may do a significant amount of computation on the server, can be resources.</p></li>
+<li><p>When a URL is dereferenced, the server sends a <strong>resource representation</strong> to the client. Note that the <em>resource representation</em> (e.g. the HTML or JSON describing a person or a text document) is different from the conceptual <em>resource</em> itself (e.g. the person or text document). The client ever only accesses the representation, and manipulation of the resources is always done indirectly via the representation. By making explicit the step of serializing the resource to send its representation over a network—instead of working with the leaky abstraction or illusion that the client is working directly on the server’s resource—helps deal with various scenarios, like: network errors, race conditions when multiple clients work on the same resource on the server, and idiosyncrasies in the serialization (and deserialization) of the resource to (and from) its representation.</p>
+<p>Furthermore, the serialization format or “data format of a representation is known as a media type.” HTML, JPEG, XML and JSON are all examples of <strong>media types</strong>. The specification of the data format, which the client has to be familiar with in advance, generically informs the client on how to construct further operations upon receiving a resource representation. The media type, however, does not specify the structure/schema of the resource itself. For details and an alternative interpretation of Fielding’s thesis, see the next section <a href="#media-types-generic-hypermedia-format-vs.-custom-media-types">“Media Types: generic Hypermedia Format vs. custom Media Types”</a>.</p></li>
+<li><p><strong>HATEOAS</strong> (Hypermedia as the Engine of Application State) means that the media type used should be a hypermedia format (i.e. it should at least have the notion of a link) and that the client requires no prior knowledge beyond a generic understanding of the hypermedia format to interact with the server. Similar to how a web browser only needs to know HTML and the URL of the homepage of a website, an API client only has to know a supported media type and the URL of an entry point to the API. It can then follow links to dynamically walk the API’s resources. With each HTTP request, the state of the application, as expressed by the client’s current URL, is changed. No further out-of-band information, such as schemas or API descriptions, is needed.</p>
+<p>A hypermedia format has to define a way to construct valid state transitions from a server response. For example, the HTML format specifies how to construct a GET request from a link element and its <code>href</code> attribute, as well as how to construct a POST request from a form and its containing elements.</p>
+<p>HATEOAS enables very loose coupling between the client and the server. Also, just as a web browser can navigate every website using HTML, generic clients can interact with all APIs that talk in a hypermedia format supported by the client.</p></li>
+</ul></li>
+<li><p>The system must be a <strong>layered system</strong> with components constrained “such that each component cannot ‘see’ beyond the immediate layer with which they are interacting”. This allows the clients to communicate transparently with proxies and gateways. For example when a caching proxy is introduced, the client can just talk to the new proxy as if it were the original server, although the proxy actually passes the request on to the next layer behind the scenes.</p></li>
+<li><p>The system <strong>may use code on demand</strong>. The server may not only send data but also code to the client where additional processing would take place. In terms of the web, that would be JavaScript or Java applets executed on the client.</p></li>
+</ol>
+<h4 id="media-types-generic-hypermedia-format-vs.-custom-media-types">Media Types: generic Hypermedia Format vs. custom Media Types</h4>
+<p>Media types are a central element of REST as they specify exactly how the client and server interact. There has been a longstanding discussion on the role of media types in REST APIs <span class="citation">(<a href="#ref-krishnan2010">Krishnan</a> 2010; <a href="#ref-tilkov2011">Tilkov</a> 2011)</span>. While we have come to the conclusion that the first of the two approaches listed below is both the more practical approach, as well as the one intended by Fielding, the debate may still interest the reader.</p>
+<p>When designing a REST API, there are basically two options for the server to use media types in the <code>Content-Type</code> header (and consequently for the client in the <code>Accept</code> header):</p>
+<ol type="1">
+<li>Use a standard media type such as <code>application/json</code> or <code>application/hal+json</code>.</li>
+<li>Create custom media types for each kind of resource to serve as contracts between client and server.</li>
+</ol>
+<p>Unfortunately, Fielding doesn’t address this in his thesis <span class="citation"><a href="#ref-fielding2000">(<span class="ref-contributor">Fielding</span> 2000)</a></span>. In a later blog post <span class="citation"><a href="#ref-fielding2008">(<span class="ref-contributor">Fielding</span> 2008a)</a></span>, he acknowledges his brevity:</p>
+<blockquote>
+<p>To some extent, people get REST wrong because I failed to include enough detail on media type design within my dissertation. That’s because I ran out of time, not because I thought it was any less important than the other aspects of REST.</p>
+</blockquote>
+<p>But he doesn’t seem too interested in changing the state of affairs: <span class="citation"><a href="#ref-fielding2008-2">(<span class="ref-contributor">Fielding</span> 2008b)</a></span></p>
+<blockquote>
+<p>Others will try to decipher what I have written in ways that are more direct or applicable to some practical concern of today. I probably won’t, because I am too busy [...]</p>
+</blockquote>
+<p>Consequently, he is still rather cryptic: <span class="citation"><a href="#ref-fielding2008">(<span class="ref-contributor">Fielding</span> 2008a)</a></span></p>
+<blockquote>
+<p>A REST API should spend almost all of its descriptive effort in defining the media type(s) used for representing resources and driving application state, or in defining extended relation names and/or hypertext-enabled mark-up for existing standard media types. Any effort spent describing what methods to use on what URIs of interest should be entirely defined within the scope of the processing rules for a media type (and, in most cases, already defined by existing media types).</p>
+<p>[...]</p>
+<p>A REST API should be entered with no prior knowledge beyond the initial URI (bookmark) and set of standardized media types that are appropriate for the intended audience (i.e., expected to be understood by any client that might use the API).</p>
+</blockquote>
+<p>But finally, in the comments: <span class="citation"><a href="#ref-fielding2008">(<span class="ref-contributor">Fielding</span> 2008a, emphasis added)</a></span></p>
+<blockquote>
+<p>How many Web browsers are aware of the distinction between an online-banking resource and a Wiki resource? None of them. <strong>They don’t need to be aware of the resource types.</strong> What they need to be aware of is the potential state transitions—the links and forms—and what semantics/actions are implied by traversing those links. A browser represents them as distinct UI controls so that a user can see potential transitions and anticipate the effect of chosen actions. A spider can follow them to the extent that the relationships are known to be safe. Typed relations, specific media types, and action-specific elements provide the guidance needed for automated agents.</p>
+</blockquote>
+<p>We take this to mean that Fielding doesn’t advocate the creation of custom media types for each resource type (option 2 above), but rather the reuse of standardized media types (option 1 above).</p>
+<p>The upshot is that unless none of the existing hypermedia formats suffice, an API should use a standardized hypermedia format and advertise that with a <code>Content-Type</code> header such as <code>application/hal+json</code>, <code>application/ld+json</code>, <code>text/html</code> or <code>application/atom+xml</code>. If the client knows the format, it can then extract and construct links, as well as identify which methods are applicable in the current context <span class="citation"><a href="#ref-kumar2009">(<span class="ref-contributor">Kumar</span> 2009)</a></span>. For example when using <code>text/html</code>, the browser knows how to extract links from <code>&lt;a href=&quot;...&quot;&gt;...&lt;/a&gt;</code>, as well as how to construct methods from <code>&lt;form method=&quot;POST&quot;&gt;...&lt;/form&gt;</code> although the media type doesn’t say anything about the semantics of the resources themselves (e.g. “bank account” or “social media profile”).</p>
+<h4 id="hypermedia-apis">Hypermedia APIs</h4>
+<p>In the context of web APIs, some people have stopped using the intimidating term HATEOAS, and sometimes even the by now overloaded term REST, in favour of the perhaps easier to understand term <em>hypermedia API</em> <span class="citation"><a href="#ref-klabnik2012">(<span class="ref-contributor">Klabnik</span> 2012)</a></span>. Whatever the terminology, the point is that the media type of a REST API must support links. Links allow a client to dynamically discover related resources.</p>
+<p>Even though the hypermedia approach to APIs is not mainstream as of today, a hypermedia format that is widely-used by REST APIs holds the promise of generic clients, further decoupling servers from clients, as well as self-explanatory APIs that are browsable by humans as well as machines.</p>
+<p>While HTML is a hypermedia format, it isn’t particularly suited to building APIs to be consumed by machines. XML in conjunction with <a href="http://www.w3.org/TR/xlink11/">XLink</a> can be considered a hypermedia format, but public APIs are shifting their focus away from XML to JSON <span class="citation"><a href="#ref-google-trends-soap-rest">(“Google Trends: XML API, JSON API, SOAP API, REST API” 2014)</a></span>. Of the <a href="#inspecting-public-rest-apis">inspected APIs</a>, the following are already JSON-only: Facebook Graph, Twitter, GitHub, Freebase, Google Books.</p>
+<p>As links are usually by far the most-used state transitions, and our tool is only going to retrieve and never submit data, we will focus our discussion of hypermedia formats on links and mostly ignore the creation and modification of resources.</p>
+<h4 id="rfc-5988-web-linking">RFC 5988: Web Linking</h4>
+<p>As explained above, links are one of the fundamental building blocks of hypermedia APIs. In 2010, RFC 5988 <span class="citation"><a href="#ref-rfc5988">(“RFC 5988: Web Linking” 2010)</a></span> generalised a concept of a link that was already found in various formats, including:</p>
+<ul>
+<li>HTML’s <code>link</code> header element: <code>&lt;link href=&quot;http://creativecommons.org/licenses/by/4.0/&quot; rel=&quot;license&quot; /&gt;</code></li>
+<li>Atom’s <code>atom:link</code> element: <code>&lt;atom:link href=&quot;http://creativecommons.org/licenses/by/4.0/&quot; rel=&quot;license&quot; /&gt;</code></li>
+<li>The HTTP Link header: <code>Link: &lt;http://creativecommons.org/licenses/by/4.0/&gt;; rel=license</code></li>
+</ul>
+<p>RFC 5988 defines a general framework for typed links for the web by defining the abstract concept of a link as:</p>
+<blockquote>
+<p>a statement of the form &quot;{context IRI} has a {relation type} resource at {target IRI}, which has {target attributes}&quot;.</p>
+</blockquote>
+<p>The <em>target attributes</em> are rarely-used optional key/value pairs. The <em>relation type</em>, often abbreviated with “rel”, specifies the nature of the link. The <em>context IRI</em> defaults to the IRI of the requested resource. So if the three examples above are served from <code>http://example.com</code>, then all three are instances of the same abstract link:</p>
+<pre><code>Resource: http://example.com
+Relation-type: license
+Target: http://creativecommons.org/licenses/by/4.0/</code></pre>
+<p>The link expresses that <code>http://example.com</code> has the <code>license</code> <em>Creative Commons Attribution 4.0</em>.</p>
+<p>There are two types of <em>link relation types</em>:</p>
+<ul>
+<li><em>Registered relation types</em> which are strings (such as “self”, “next” or “license”) and must be registered and approved by IANA. The list of registered relations can be found at a <a href="http://www.iana.org/assignments/link-relations/link-relations.xhtml">IANA page</a> <span class="citation"><a href="#ref-iana-link-relations">(“IANA Link Relations”)</a></span>.</li>
+<li><em>Extension relation types</em> which must be valid URIs. Preferably, the URI points to a description of the semantics of the relation type.</li>
+</ul>
+<p>Using the same abstract concept of a link throughout various serialization formats would enable the seamless integration of networks and graphs expressed in a multitude of applications and contexts. A few that come to mind: Facebook’s Open Graph <span class="citation"><a href="#ref-opengraph">(“The Open Graph Protocol” 2010)</a></span>, RDF <span class="citation"><a href="#ref-rdf">(“RDF 1.1 Concepts and Abstract Syntax”)</a></span>, hypermedia APIs, and of course the HTML-based Web.</p>
+<p>As most public Web APIs are currently JSON-based, a serialisation of the link concept for JSON seems vital to the future of hypermedia APIs. There are a few different proposed ways on how to express links in JSON <span class="citation"><a href="#ref-mnot2011">(<span class="ref-contributor">Nottingham</span> 2011)</a></span>. Two of them, HAL and JSON-LD, will be introduced in the following subsection.</p>
+<h4 id="hypermedia-formats">Hypermedia Formats</h4>
+<p>On a basic level, a hypermedia format is one that has the notion of a link, like for example HTML. There are several JSON-based hypermedia formats available, of which two seem to be relatively mature and have gained some traction: HAL and JSON-LD.</p>
+<h5 id="hal">HAL</h5>
+<p><a href="http://stateless.co/hal_specification.html">HAL</a> is an IETF Draft <span class="citation"><a href="#ref-hal">(<em>IETF Internet-Draft: JSON Hypertext Application Language</em> 2014)</a></span> and a quite simple format that mainly defines a standardized way to add two things to a JSON document:</p>
+<ol type="1">
+<li>links (as defined by RFC 5988)</li>
+<li>embedded resources with their own links</li>
+</ol>
+<p>An example HAL document <span class="citation"><a href="#ref-kelly2011">(“HAL: The Hypertext Application Language” 2011)</a></span>:</p>
+<pre class="sourceCode json"><code class="sourceCode json"><span class="fu">{</span>
+    <span class="dt">&quot;_links&quot;</span><span class="fu">:</span> <span class="fu">{</span>
+        <span class="dt">&quot;self&quot;</span><span class="fu">:</span> <span class="fu">{</span>
+            <span class="dt">&quot;href&quot;</span><span class="fu">:</span> <span class="st">&quot;/orders&quot;</span>
+        <span class="fu">},</span>
+        <span class="dt">&quot;curies&quot;</span><span class="fu">:</span> <span class="ot">[</span> <span class="fu">{</span>
+            <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;ea&quot;</span><span class="fu">,</span>
+            <span class="dt">&quot;href&quot;</span><span class="fu">:</span> <span class="st">&quot;http://example.com/docs/rels/{rel}&quot;</span><span class="fu">,</span>
+            <span class="dt">&quot;templated&quot;</span><span class="fu">:</span> <span class="kw">true</span>
+        <span class="fu">}</span> <span class="ot">]</span><span class="fu">,</span>
+        <span class="dt">&quot;next&quot;</span><span class="fu">:</span> <span class="fu">{</span>
+            <span class="dt">&quot;href&quot;</span><span class="fu">:</span> <span class="st">&quot;/orders?page=2&quot;</span>
+        <span class="fu">},</span>
+        <span class="dt">&quot;ea:find&quot;</span><span class="fu">:</span> <span class="fu">{</span>
+            <span class="dt">&quot;href&quot;</span><span class="fu">:</span> <span class="st">&quot;/orders{?id}&quot;</span><span class="fu">,</span>
+            <span class="dt">&quot;templated&quot;</span><span class="fu">:</span> <span class="kw">true</span>
+        <span class="fu">}</span>
+    <span class="fu">},</span>
+    <span class="dt">&quot;currentlyProcessing&quot;</span><span class="fu">:</span> <span class="dv">14</span><span class="fu">,</span>
+    <span class="dt">&quot;shippedToday&quot;</span><span class="fu">:</span> <span class="dv">20</span><span class="fu">,</span>
+    <span class="dt">&quot;_embedded&quot;</span><span class="fu">:</span> <span class="fu">{</span>
+        <span class="dt">&quot;ea:order&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="fu">{</span>
+            <span class="dt">&quot;_links&quot;</span><span class="fu">:</span> <span class="fu">{</span>
+                <span class="dt">&quot;self&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;href&quot;</span><span class="fu">:</span> <span class="st">&quot;/orders/123&quot;</span> <span class="fu">},</span>
+                <span class="dt">&quot;ea:customer&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;href&quot;</span><span class="fu">:</span> <span class="st">&quot;/customers/7809&quot;</span> <span class="fu">}</span>
+            <span class="fu">},</span>
+            <span class="dt">&quot;total&quot;</span><span class="fu">:</span> <span class="fl">30.00</span><span class="fu">,</span>
+            <span class="dt">&quot;currency&quot;</span><span class="fu">:</span> <span class="st">&quot;USD&quot;</span>
+        <span class="fu">}</span><span class="ot">,</span> <span class="fu">{</span>
+            <span class="dt">&quot;_links&quot;</span><span class="fu">:</span> <span class="fu">{</span>
+                <span class="dt">&quot;self&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;href&quot;</span><span class="fu">:</span> <span class="st">&quot;/orders/124&quot;</span> <span class="fu">},</span>
+                <span class="dt">&quot;ea:customer&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;href&quot;</span><span class="fu">:</span> <span class="st">&quot;/customers/12369&quot;</span> <span class="fu">}</span>
+            <span class="fu">},</span>
+            <span class="dt">&quot;total&quot;</span><span class="fu">:</span> <span class="fl">20.00</span><span class="fu">,</span>
+            <span class="dt">&quot;currency&quot;</span><span class="fu">:</span> <span class="st">&quot;USD&quot;</span>
+        <span class="fu">}</span><span class="ot">]</span>
+    <span class="fu">}</span>
+<span class="fu">}</span></code></pre>
+<p>HAL uses RFC 5988 for links. Therefore, custom link <em>relation types</em> (not only their targets) are full-blown IRIs. To shorten those, HAL uses CURIEs <span class="citation"><a href="#ref-curie">(<em>W3C Working Group Note: CURIE Syntax 1.0</em> 2010)</a></span> that can be specified at the reserved property at <code>._links.curies</code>. In the example above, <code>ea:find</code> is used to express the link relation type <code>http://example.com/docs/rels/find</code>. The CURIE syntax is similar to XML Schema’s QNames. However, it doesn’t suffer some of its shortcoming when abbreviating arbitrary URIs. For example, <code>isbn:0321154991</code> isn’t a valid QName since ‘0321154991’ is not a valid element name <span class="citation"><a href="#ref-curie">(<em>W3C Working Group Note: CURIE Syntax 1.0</em> 2010)</a></span>.</p>
+<p>HAL doesn’t have an explicit way to advertise methods other than links to construct GET requests—i.e. no analog to forms in HTML. This means there is no obvious way to instruct clients on how to construct <code>POST</code>, <code>PUT</code> or <code>DELETE</code> request to modify resources on the server. However, it has been suggested <span class="citation"><a href="#ref-hal-discuss2013">(“HAL Discuss Mailing List” 2013)</a></span> to advertise general methods in links (e.g. with the <code>edit</code> link relation type) or doing a HTTP OPTIONS request to see what methods are available. This might work for simple methods but definitely trades more complex interactions in favour of simplicity.</p>
+<p>A major REST API that uses HAL in production is Amazon’s AppStream API <span class="citation"><a href="#ref-amazonAppStream">(“Amazon AppStream REST API” 2013)</a></span>. Client libraries that facilitate the access to HAL APIs include <em>hyperagent.js</em> for JavaScript <span class="citation"><a href="#ref-hygeragent">(<span class="ref-contributor">Hartig</span> 2013)</a></span> and <em>Hyper-Resource</em> for Ruby <span class="citation"><a href="#ref-gamache2014">(<span class="ref-contributor">Gamache</span> 2014)</a></span>.</p>
+<h5 id="json-ld-and-hydra">JSON-LD and Hydra</h5>
+<p><a href="http://json-ld.org">JSON-LD</a> (JSON for Linking Data) is a W3C Recommendation to serialize linked data <span class="citation"><a href="#ref-json-ld">(<em>W3C Recommendation: JSON-LD 1.0</em> 2014)</a></span>. On one level, it is simply an alternative to RDF/XML, N3 or similar formats: a serialization for RDF graphs <span class="citation"><a href="#ref-rdf">(“RDF 1.1 Concepts and Abstract Syntax”)</a></span> which happens to be valid JSON at the same time. (Although JSON-LD also supports native lists, JSON’s native primitive types like number and boolean, as well as properties that are blank nodes, which makes it in fact a superset of RDF.)</p>
+<p>On another level however, JSON-LD can be seen as a hypermedia format because all RDF resources (except blank nodes) are identified by an IRI. “Developers and machines are able to use this IRI (by using a web browser, for instance) to go to the term and get a definition of what the term means. This process is known as IRI dereferencing.” <span class="citation"><a href="#ref-json-ld">(<em>W3C Recommendation: JSON-LD 1.0</em> 2014, 5. Basic Concepts)</a></span> While all RDF serializations could be seen as hypermedia formats, JSON-LD is an appealing format from the point of view of hypermedia APIs because existing JSON APIs can be augmented to JSON-LD in a completely backwards-compatible way.</p>
+<p>This JSON-LD example demonstrates some of the flexibility of the format:</p>
+<pre class="sourceCode json"><code class="sourceCode json"><span class="fu">{</span>
+  <span class="dt">&quot;@context&quot;</span><span class="fu">:</span> <span class="fu">{</span>
+      <span class="dt">&quot;foaf&quot;</span><span class="fu">:</span> <span class="st">&quot;http://xmlns.com/foaf/0.1/&quot;</span><span class="fu">,</span>
+      <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;foaf:name&quot;</span><span class="fu">,</span>
+      <span class="dt">&quot;knows&quot;</span><span class="fu">:</span> <span class="st">&quot;foaf:knows&quot;</span>
+  <span class="fu">},</span>
+  <span class="dt">&quot;@id&quot;</span><span class="fu">:</span> <span class="st">&quot;http://manu.com/#me&quot;</span><span class="fu">,</span>
+  <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Manu Sporny&quot;</span><span class="fu">,</span>
+  <span class="dt">&quot;foaf:homepage&quot;</span><span class="fu">:</span> <span class="st">&quot;http://manu.sporny.org/&quot;</span><span class="fu">,</span>
+  <span class="dt">&quot;knows&quot;</span><span class="fu">:</span> <span class="fu">{</span>
+    <span class="dt">&quot;@id&quot;</span><span class="fu">:</span> <span class="st">&quot;http://pete.com/#me&quot;</span><span class="fu">,</span>
+    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Peter Muller&quot;</span>
+  <span class="fu">}</span>
+<span class="fu">}</span></code></pre>
+<p>Which translates to the following four RDF triples:</p>
+<pre><code>@prefix foaf: &lt;http://xmlns.com/foaf/0.1/&gt; .
+&lt;http://manu.com/#me&gt; foaf:homepage &lt;http://manu.sporny.org/&gt; .
+&lt;http://manu.com/#me&gt; foaf:knows &lt;http://peter.com/#me&gt; .
+&lt;http://manu.com/#me&gt; foaf:name &quot;Manu Sporny&quot; .
+&lt;http://pete.com/#me&gt; foaf:name &quot;Peter Muller&quot; .</code></pre>
+<p>Interestingly, no one seems to have gone through the trouble of defining a mapping from RDF (or JSON-LD) to RFC 5988 <span class="citation"><a href="#ref-mnot2011">(<span class="ref-contributor">Nottingham</span> 2011, comment of Manu Sporny)</a></span>. But a mapping from RDF (i.e. to a triple of the form <em>subject predicate object</em>) is usually straightforward: the subject maps to the <em>context IRI</em>, the predicate to the <em>relation type</em>, and the object to the <em>target IRI</em>. The inverse mapping is slightly trickier since RFC 5988 may contain target attributes, although they are rarely used. Target attributes can refer to either the link itself or the target, and the information on which is the case is usually not available in machine-readable form.</p>
+<p>For some applications, it may be particularly interesting that JSON-LD, when making use of the <a href="http://schema.org/">Schema.org</a> vocabulary, is <a href="https://developers.google.com/schemas/formats/json-ld">somewhat</a> supported <a href="https://support.google.com/webmasters/answer/4620133">by Google</a> <span class="citation"><a href="#ref-google-json-ld">(“Google Webmaster Tools: Musical Artists” 2014)</a></span>.</p>
+<p><a href="http://www.hydra-cg.com">Hydra</a> <span class="citation">(<em>W3C Unofficial Draft: Hydra Core Vocabulary</em> 2014; <a href="#ref-hydra">Lanthaler</a> 2013)</span> is an RDF vocabulary “which enables a server to advertise valid state transitions to a client”. A Hydra API returns JSON-LD that, in addition to the data, also contains statements on how to interact with the API. In plain JSON-LD for example, a client would have no choice but to blindly try to dereference the target URIs of all properties. The <code>hydra:Link</code> class can be used by the server to indicate which properties are intended to be dereferenced, i.e. which identifiers are not only URIs but also URLs locating a resource of the API. Furthermore, Hydra also contains vocabulary to instruct a client on how to construct POST, DELETE and other requests.</p>
+<h5 id="other-formats">Other Formats</h5>
+<p>In recent years, quite a few hypermedia formats have been created, some of them still quite experimental. Examples include <a href="https://github.com/kevinswiber/siren">SIREN</a>, <a href="http://jsonapi.org/">JSON API</a> and <a href="http://g.mamund.com/uber">UBER</a>. While the basic principle is very similar to HAL, the details vary and most of the formats support more HTTP verbs than GET.</p>
+<p>There is also a W3C Working Draft called <a href="http://www.w3.org/TR/ldp-primer/">Linked Data Platform</a> <span class="citation"><a href="#ref-ldp">(“Linked Data Platform 1.0” 2014)</a></span> which, similar to Hydra, defines an RDF-vocabulary describing RESTful Web APIs. However, it is limited to CRUD and doesn’t support describing arbitrary operations.</p>
+<p>Time will tell which approach has the most mainstream appeal. Upon broader adoption of any one hypermedia format, however, network effects will certainly help making it an even more attractive choice.</p>
+<h3 id="interface-description-languages-idl">Interface Description Languages (IDL)</h3>
+<p>In REST as defined by Fielding, the client shouldn’t have to rely on out-of-band information to navigate the API (see HATEOAS <a href="#the-rest-architectural-style">above</a>). Nonetheless, a number of formats to describe Web APIs in a more or less machine-readable way have been developed. Such Interface Description Languages (IDLs)—following the spirit of WSDL and other earlier formats—usually result in a file that has to be downloaded separately by the client (i.e. out-of-band information). Similar to the remote procedure call paradigm <span class="citation"><a href="#ref-fielding2000">(<span class="ref-contributor">Fielding</span> 2000, 6.5.2 HTTP is not RPC)</a></span>, these IDLs are thus commonly used to generate client-side code in advance, or to generate server-side code (i.e. stubs) and documentation.</p>
+<p>In the last couple of years, the focus of public Web APIs has shifted away from the XML/SOAP ecosystem to JSON and self-proclaimed RESTful APIs <span class="citation"><a href="#ref-rest-vs-soap">(<span class="ref-contributor">Mason</span> 2011)</a></span>. This has also meant the disappearance of IDL files and generic tooling for most public Web APIs <span class="citation"><a href="#ref-soapui-rest">(“SoapUI: SOAP Vs. REST Challenges” 2014)</a></span>.</p>
+<p>However, there are efforts to regain those. A list of IDLs, that usually come with accompanying tooling, and are designed to work well with JSON-based REST-like Web APIs (even though these APIs are strictly speaking usually not REST APIs):</p>
+<dl>
+<dt><a href="http://swagger.io">Swagger</a></dt>
+<dd>was originally developed by <a href="https://helloreverb.com/about">Reverb</a> (then Wordnik) but is now mostly a community effort. It seems to be the format with the most open source tooling and traction <span class="citation"><a href="#ref-lensmar2014">(<span class="ref-contributor">Lensmar</span> 2014)</a></span>. Swagger can be used in a bottom-up approach (generating the JSON file from annotations in the server-side code, which is usually Java) or in a declarative top-down approach (generate server- and client-side code in a variety of languages from the JSON file).
+</dd>
+<dt><a href="http://apiblueprint.org">API-Blueprint</a></dt>
+<dd>is a JSON-based format backed by <a href="http://apiary.io">Apiary</a> and their services.
+</dd>
+<dt><a href="http://raml.org">RAML</a></dt>
+<dd>is a YAML-based format backed by <a href="http://www.mulesoft.com">Mulesoft</a> and their services.
+</dd>
+<dt><a href="https://github.com/mashery/iodocs#quick-api-configuration-example">I/O Docs</a></dt>
+<dd>is a JSON-Schema-based format backed by Mashery, mainly used to generate documentation.
+</dd>
+<dt>WADL and RSDL</dt>
+<dd>(<em>Web Application Description Language</em> and <em>RESTful Service Description Language</em>) are both XML-based formats. Regardless of their potential merits, they will therefore probably not gain traction in the community around public REST-like Web APIs.
+</dd>
+<dt><a href="https://developers.google.com/discovery/v1/reference/apis">Google Discovery Document Format</a></dt>
+<dd>is a JSON-based format mainly used internally by Google and to access Google’s various Web APIs. The <a href="https://code.google.com/p/google-apis-client-generator/">Google APIs Client Generator</a> allows generation of Java, .NET and PHP clients.
+</dd>
+<dt><a href="http://json-schema.org/latest/json-schema-hypermedia.html">JSON Hyper Schema</a></dt>
+<dd>is a vocabulary for JSON Schema to describe links. This may at first sound like it’s a hypermedia format. However, JSON Schema files are always out-of-band information and as such it resembles rather an IDL. JSON Hyper Schema is also an <a href="http://tools.ietf.org/html/draft-zyp-json-schema">IETF Draft</a>, although it expired August 4, 2013.
+</dd>
+<dt>Silk’s internal format</dt>
+<dd>is basically a Haskell abstract data type which serves as server-side code at the same time.
+</dd>
+</dl>
+<p>In recent years, RPC frameworks like Apache Thrift <span class="citation"><a href="#ref-thrift">(“Thrift: Scalable Cross-Language Services Implementation” 2007)</a></span>, Apache Avro <span class="citation"><a href="#ref-avro">(“Apache Avro”)</a></span> and Google Protocol Buffers <span class="citation"><a href="#ref-probuffs">(“Google Developers: Protocol Buffers”)</a></span> have sprung up as well. However, with their binary protocols and little consideration for security, they are primarily meant for internal use.</p>
+<h3 id="inspecting-public-rest-apis">Inspecting public REST APIs</h3>
+<p>As our tool has to work with basically every Web API on the public Internet, it was important that we gained a clear understanding of the commonalities and differences of public Web APIs. To this end, we specifically inspected the following APIs:</p>
+<ul>
+<li><a href="https://developers.facebook.com/docs/graph-api/reference">Facebook</a></li>
+<li><a href="https://www.flickr.com/services/api/">Flickr</a></li>
+<li><a href="http://developer.rottentomatoes.com/docs/read/JSON">Rotten Tomatoes</a></li>
+<li><a href="https://developers.google.com/freebase/v1/">Freebase</a></li>
+<li><a href="https://developer.github.com/v3/">GitHub</a></li>
+<li><a href="https://developers.google.com/books/docs/v1/reference/">Google Books</a></li>
+<li><a href="http://developer.nytimes.com/docs">New York Times</a></li>
+<li><a href="http://www.theguardian.com/open-platform/getting-started">The Guardian</a></li>
+<li><a href="https://dev.twitter.com/docs/api/1.1">Twitter</a></li>
+</ul>
+<h4 id="authentication">Authentication</h4>
+<p>To authenticate the client against the API provider (i.e. the server), all inspected APIs have an option to use an API key or session token transmitted as a query parameter. The key is usually obtained by manually registering the client application on the website of the service. This basic authentication seems to suffice for our prototype. In production, support for at least OAuth 2.0 would probably be needed as some authentication tokens (e.g. Facebook’s) expire rather quickly.</p>
+<h4 id="versioning">Versioning</h4>
+<p>The currently most accepted way is to put the major version number in the URL (<code>http://api.example.com/v2/</code>), and have the client choose between minor revisions by using an HTTP header, which may be a date.</p>
+<h4 id="envelope">Envelope</h4>
+<p>Some APIs always use an envelope, while most use one only on endpoints that return a collection of items, for example:</p>
+<pre class="sourceCode json"><code class="sourceCode json"><span class="fu">{</span>
+  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span>
+  <span class="dt">&quot;results&quot;</span><span class="fu">:</span> <span class="ot">[</span>
+    <span class="fu">{</span><span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">}</span><span class="ot">,</span>
+    <span class="fu">{</span><span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">}</span>
+  <span class="ot">]</span>
+<span class="fu">}</span></code></pre>
+<p>Unfortunately, the specific fields and names used vary a lot.</p>
+<h4 id="pagination">Pagination</h4>
+<p>Some queries to an API have hundreds if not thousands of results. To reduce overhead and stress on both the server and client, results are therefore often split up into pages. There are broadly speaking three approaches to pagination:</p>
+<ul>
+<li>The most common way is to have a query parameter (usually called <code>page</code>) that lets the client request a page by number. This is often combined with a parameter that specifies the number of results per page (usually called <code>limit</code> or <code>count</code>).</li>
+<li>In some cases, such as Twitter <span class="citation"><a href="#ref-twittertimelines">(“Twitter Developers: Working with Timelines”)</a></span>, there are new results added to the front of the list very frequently. This makes using a <code>page</code> query parameter an inefficient method, as for example tweets that were on the first page get pushed down to the second page by the time that it is requested, and are thus returned again. For such cases, <em>cursoring</em> is used: a <code>max_id</code> query parameter (in combination with <code>count</code>) is used to request results relative to a result with a known ID (which is usually the last result of the previous query). Obviously, this assumes that the results are ordered by ID.</li>
+<li>Finally, the Hypermedia approach is to simply use <code>next</code> and <code>previous</code> links that leave the task of constructing the URL to the next page to the server. While some advocate using the HTTP Link header to that end (e.g. <code>Link: &lt;http://example.com/query?page=2&gt;; rel=next</code>), if a dedicated Hypermedia Format is already in use, it seems preferable to embed those links in the content. </li>
+</ul>
+<h2 id="related-work">Related Work</h2>
+<p>In terms of related work in the area of GUIs to work with existing REST-like Web APIs, there exist a number of tools.</p>
+<dl>
+<dt><a href="https://apigee.com/console/">Apigee Console</a></dt>
+<dd><p>is a web app to easily explore the contained directory of Web APIs. APIs are added by uploading a WADL IDL document. The GUI is useful if there exists already an up-to-date WADL file of the API the user is interested in, or if she knows how to create one. However, it doesn’t help in quickly mapping APIs without a WADL description.</p>
+<figure>
+<img src="images/apigee-console.jpg" alt="Apigee Console screenshot. As you can see, its description of the NYT Article Search API v1 is already deprecated." /><figcaption>Apigee Console screenshot. As you can see, its description of the <em>NYT Article Search API v1</em> is already deprecated.</figcaption>
+</figure>
+</dd>
+<dt><a href="http://www.soapui.org/Getting-Started/rest-sample-project.html">SoapUI</a></dt>
+<dd><p>is a desktop application used, among other things like API testing, to create IDL documents, e.g. WSDL or Swagger files. While without doubt very comprehensive and feature-rich, the GUI is quite intimidating and complex. There’s also no built-in browser with immediate feedback to discover and explore the API.</p>
+<figure>
+<img src="images/soapui.jpg" alt="SoapUI screenshot" /><figcaption>SoapUI screenshot</figcaption>
+</figure>
+</dd>
+<dt><a href="http://wiki.netbeans.org/WadlVisualDesigner">NetBeans WADL Visual Designer</a></dt>
+<dd>is similar to SoapUI but is part of the NetBeans IDE.
+</dd>
+<dt><a href="https://www.getpostman.com/">Postman</a></dt>
+<dd><p>is a browser-based GUI to facilitate accessing and testing Web APIs. It doesn’t, however, have the capability to build up an IDL-like representation.</p>
+<figure>
+<img src="images/postman.png" alt="Postman screenshot (“Postman”)" /><figcaption>Postman screenshot <span class="citation"><a href="#ref-postman">(“Postman”)</a></span></figcaption>
+</figure>
+</dd>
+<dt><a href="http://mmattozzi.github.io/cocoa-rest-client/">Cocoa Rest Client</a></dt>
+<dd>is similar to Postman but built as a native Mac application and is open source.
+</dd>
+<dt><a href="https://luckymarmot.com/paw">Paw</a></dt>
+<dd>is a more polished but proprietary app, similar to <em>Cocoa Rest Client</em>.
+</dd>
+</dl>
+<p>The tools listed seem to fall into two categories: On one hand, <em>SoapUI</em> and <em>NetBeans WADL Visual Designer</em> have complex and rather unfriendly interfaces to create an IDL file but don’t support browsing Web APIs. On the other hand, the other tools have user-friendly GUIs to make requests to Web APIs but don’t allow the user to build a map of the API being explored. The GUI of our tool aims to fill that gap. </p>
+<h2 id="implementation">Implementation</h2>
+<p>We built a prototype tool that demonstrates a way to let a user quickly map any JSON-based Web API and import data from that API for local usage. In most cases, we imagine that users will use the description they created to access the original Web APIs through the uniform and HAL-compliant wrapper Web API provided by our tool.</p>
+<p>The tool consists of a web-based GUI to browse and map the Web APIs (built using AngularJS and nginx as a proxy to escape browsers’ same-origin policy), as well as a Node.js-based server that provides persistence using MongoDB and a wrapper Web API to all mapped APIs. The all-JavaScript stack allows us to share code between the server and the client. This enables a responsive GUI on the client while the same code runs the wrapper API on the server.</p>
+<h3 id="supporting-specifications">Supporting Specifications</h3>
+<p>In addition to using the notion of a link as defined by <a href="#rfc-5988-web-linking">RFC 5988</a> and as used by <a href="#hal">HAL</a> (both described above), our implementation also relies on two additional specifications:</p>
+<ol type="1">
+<li>RFC 6570 defines URI Templates <span class="citation"><a href="#ref-rfc6570">(“RFC 6570: URI Template” 2012)</a></span>. As an example, the URI template <code>http://www.example.com/foo{?query,number}</code> in the context of the variables <code>{&quot;query&quot;: &quot;mycelium&quot;, &quot;number&quot;: 100}</code>, would be expanded to the URI <code>http://www.example.com/foo?query=mycelium&amp;number=100</code>.</li>
+<li>JSPath <span class="citation"><a href="#ref-jspath">(“JSPath” 2012)</a></span> is a JavaScript library that implements a custom domain-specific language (DSL) to extract data from JSON documents. “JSPath for JSON is like an XPath for XML.” For example, the JSPath expression <code>.results[0]</code> would extract <code>&quot;Marvin&quot;</code> from the following JSON: <code>{&quot;success&quot;: true, &quot;results&quot;: [&quot;Marvin&quot;, &quot;Ford&quot;, &quot;Tricia&quot;, &quot;Arthur&quot;] }</code>.</li>
+</ol>
+<h3 id="data-model-of-an-api">Data Model of an API</h3>
+<p>When mapping an API, the user is effectively creating an instance of the data model we defined to represent an API. This model is somewhat similar to the ones of the Interface Description Languages described above. However, its focus is more on the dynamic generation of links at runtime, as opposed to specifying fixed parameters beforehand.</p>
+<p>For each API, the user has to specify the relevant Endpoints (like <code>http://example.com/movies/</code> and <code>http://example.com/movies/{id}</code>) and come up with Entity Classes (like <code>Movie</code>). The Entity Classes serve to model the semantical entities the user is ultimately interested in, and are conceptually similar to the ones found in entity-relationship (ER) models. As such, multiple Endpoints may share the same Entity Class (as in the <code>Movie</code>-example above). However, unlike ER modelling, we don’t specify all possible fields of an Entity but instead are content with having a tool that extracts a JSON blob from the Web API that represents that Entity. This choice was made in the spirit of semi-structured data, as well as to avoid the complexities of modeling, and writing schemas for, nested JSON structures.</p>
+<p>More specifically, the API description may contain the following properties for each mapped API:</p>
+<ul>
+<li>Global properties for the whole API:
+<ul>
+<li>An API ID</li>
+<li>Base URL: preferably an entry-point for the API, and if none exists a prefix of all URLs of the API</li>
+<li>Parameters to be passed along with each request, e.g. an API key for authentication</li>
+<li>A list of <a href="#hal">CURIEs</a> to be embedded in the HAL wrapper API. Each CURIE consists of a shorthand (e.g. <code>ea</code>) and a URL, containing the string <code>{ref}</code>, which the shorthand will be expanded with. For example when <code>(ea, http://example.com/docs/rels/{rel})</code> is declared, <code>ea:parent</code> can be used to express <code>http://example.com/docs/rels/parent</code>.</li>
+</ul></li>
+<li>A list of Endpoints where each may have:
+<ul>
+<li>An Endpoint ID</li>
+<li>A URI Template, i.e. a URL with optional variables</li>
+<li>Optional default values for the variables. For collections of Entities, one of them can also be marked as the variable that controls pagination. For example if the URI Template is <code>example.com/api{?page,limit}</code> and <code>page</code> is set as the pagination variable, our tool will automatically generate “next” (and “previous”) links that contain incremented (and decremented) values for that variable.</li>
+<li>A flag specifying whether the endpoint returns only one Entity or a collection of Entities</li>
+<li>A JSPath expression that specifies how to extract the Entity or the Entities, i.e. how to unpack it from a possible envelope.</li>
+<li>Finally, a field specifying to which of the user-specified Entity Classes the Entity belongs.</li>
+</ul></li>
+<li>A list of Entity Classes where each may have:
+<ul>
+<li>An Entity Class ID</li>
+<li>A JSPath expression to extract the human-readable title of the Entity.</li>
+<li>A list of links for an Entity of that Entity Class. Each link has to be specified by a “link relation type” <span class="citation"><a href="#ref-rfc5988">(“RFC 5988: Web Linking” 2010)</a></span> and a URI Template that can be expanded into a link target when using the JSON representing that Entity as the context for the template. The list should at least include a self-link which can be used to update the representation of the Entity.</li>
+</ul></li>
+</ul>
+<figure>
+<img src="images/screenshot.jpg" alt="Screenshot of our tool" /><figcaption>Screenshot of our tool</figcaption>
+</figure>
+<h3 id="accessing-the-data">Accessing the Data</h3>
+<p>Upon mapping an API, the user can persist the generated API description to the server by clicking “Save API”. The user has then three ways to access the data from the Web API:</p>
+<ol type="1">
+<li>Simply click the “Download JSON” button in the GUI.</li>
+<li>Click the button to export to a Swagger 2.0 file and use Swagger’s tooling to generate a client to access the original API.</li>
+<li>Access the cleaned-up and HAL-compliant wrapper API provided by the server.</li>
+</ol>
+<p>In many ways, the third option is the most interesting one. The wrapper API uses the API description stored on the server and provides a transparent intermediate layer that transforms every properly mapped API into a hypermedia API, with the advantages outlined in the previous chapter.</p>
+<p>We decided to have the wrapper API return HAL-compliant JSON. The other hypermedia format we looked at more closely <a href="#hypermedia-formats">above</a> is JSON-LD. But HAL’s simplistic way of adding a <code>_links</code> property that contains explicit links with RFC 5988 link relation types (like <code>self</code>, <code>next</code> or <code>alternate</code>) that many existing APIs already use, as well as the fact that we only need to handle GET methods, made HAL a more natural choice for this application. We evaluated using JSON that is both HAL and JSON-LD compliant, but unfortunately, that doesn’t seem possible without duplicating almost all the linking data because HAL requires the <code>_links</code> wrapper object while JSON-LD interprets each nesting as a relation.</p>
+<p>The wrapper API can be explored with a HAL browser <span class="citation"><a href="#ref-hal-browser">(e.g. “HAL-Browser” 2014)</a></span> from <code>/api/</code> (i.e. <code>http://localhost:3000/api/</code>). But generally the URL will follow the pattern <code>/api/{apiId}/{endpointId}/{url}</code>, where <code>{apiId}</code> and <code>{endpointId}</code> are the IDs chosen by the user when describing the API as <a href="#data-model-of-an-api">mentioned above</a>, and <code>{url}</code> can be an explicit URL of the remote API. All three parameters may be optional. Some ways to use the wrapper API:</p>
+<ul>
+<li><code>/api/{apiId}/{endpointId}/</code> – get the URL specified for that Endpoint (using the default variables) and return JSON containing the results in the <code>_embedded['ns:results']</code> array.</li>
+<li><code>/api/{apiId}/{endpointId}/?key1=val&amp;key2=val2</code> – same as above but variables in the URI Template are specified to override the default values. The variable names are advertised in <code>_links['ns:template']</code>.</li>
+<li><code>/api/{apiId}/_/{url}</code> – just get the specified URL but with the advantage of having the global parameters (like e.g. API key) filled in.</li>
+<li><code>/api/{apiId}/{endpointId}/{url}</code> – get that url and process results according to the Endpoint description.</li>
+</ul>
+<p>The <code>{url}</code> variants are mainly used by the GUI tool to facilitate the browsing of APIs that are not completely mapped yet.</p>
+<h3 id="cached-collections">Cached Collections</h3>
+<p>Public Web APIs usually don’t expose a sophisticated query language, like SQL, which would allow a client to access all the resources she is interested in within one query. This may be to limit server load, as well as to exert some control over what kind of applications people build on top of the API.</p>
+<p>This has the result that, for example, to fetch information from Rotten Tomatoes on a list of your favourite movies, the client has to make one HTTP request for each movie (except if all your movies fall into one of the categories directly exposed by the API, like “movies currently opening in the cinema”).</p>
+<p>To solve such use cases, we’ve decided to amend our tool with a collection of cached Entities. For each Entity Class there is a collection, each being backed by a MongoDB collection on the server. The user can click on “Save to Cache” in the GUI to persist the JSON of that Entity. This allows quick retrieval of all cached Entities by simply fetching <code>/api/{apiId}/!{entityClassId}/</code>, or a single Entity through <code>/api/{apiId}/!{entityClassId}/{entityId}</code> where <code>{entityId}</code> is either the <code>_id</code> or <code>id</code> property if the former is undefined. The cached Entities can easily be modified by the graphical JSON editor, as well as updated from the GUI. Updates are fetched from the original self-link, which is now stored in <code>_links.origin</code> since <code>_links.self</code> now refers to the cached Entity.</p>
+<h3 id="exporting-data-to-silk">Exporting data to Silk</h3>
+<p>Once a user has mapped a Web API with our tool, she’s ready to reap the fruits.</p>
+<p>Silk is a web-based platform to manage “structured and unstructured online content as easy-to-search collections of web pages and visualisations”. Disclaimer: this thesis was written in collaboration with Silk.</p>
+<p>To demonstrate the usefulness of our prototype, we implemented a simple module that lets a user export an Entity or all Entities of a collection (cached or not) with one click. It exports them to Silk by posting to Silk’s “JSON importer” Web API <span class="citation"><a href="#ref-silk-partners">(“Silk Partners”)</a></span>.</p>
+<h3 id="exporting-to-the-swagger-2.0-idl">Exporting to the Swagger 2.0 IDL</h3>
+<p>In the <a href="#interface-description-languages-idl">Interface Description Languages</a> section, we evaluated the most common IDLs for JSON REST-like Web APIs, and concluded that the Swagger format has currently the most traction across ecosystems and vendors. We therefore decided to allow the user to export the generated API description to a Swagger file. Since version 2.0 of the spec has just been released <span class="citation"><a href="#ref-swagger2">(“Swagger 2.0 Spec” 2014)</a></span>, we decided to target 2.0, with the expectation that most of the tooling available for the Swagger 1.x format will soon be updated for 2.0. This will enable users to automatically generate client and server-side stubs and human-readable documentation in a uniform look and feel for all APIs mapped with our tool.</p>
+<p>The mapping from our internal API description format to Swagger is relatively straight-forward, since Swagger also contains a list of Endpoints at its core. However, our Entity Classes have no suitable analogue and are therefore not exported.</p>
+<p>Similar to RFC 6570’s URI Templates, Swagger’s URL paths may also contain curly braces to include variables. Unfortunately, the Swagger creators have chosen not to support RFC 6570 for now <span class="citation"><a href="#ref-swaggersocket-rfc6570">(<span class="ref-contributor">Ratovsky</span> 2014)</a></span>. This has the consequence that there may be some inconsistencies when exporting from our RFC 6570-based format to Swagger. In a related issue, the Swagger spec provides the following choices when specifying where a variable/parameter occurs: “query”, “header”, “path”, “formData” or “body”. Since all our variables are encoded in the URI Template, we always use “path”. However, this has the consequence that we are <em>required</em> by the spec to always specify the parameter as <code>required: true</code> although the parameter would not always be required if the template were expanded according to RFC 6570.</p>
+<p>Finally, there were some issues around how the specification enforced (and prohibited) slashes at the beginning and end of certain URL segments. After a short discussion on the Swagger mailing list <span class="citation"><a href="#ref-swaggersocket-rfc6570">(<span class="ref-contributor">Ratovsky</span> 2014)</a></span>, we could convince the authors to tweak the specification to be clear and accommodate our use case. </p>
+<h2 id="evaluation">Evaluation</h2>
+<h3 id="test-on-three-public-apis">Test on three public APIs</h3>
+<p>We tested the prototype on the three following, relatively diverse, public Web APIs:</p>
+<ol type="1">
+<li><p>The <a href="https://developers.facebook.com/docs/graph-api/reference">Facebook Graph API</a> (v2.1) is a Web API that serves as a good representation for the majority of widely-used REST-like APIs currently on the web. While it doesn’t provide links in the JSON representations returned, the documentation explains how to construct them. For example, if we are at <code>https://graph.facebook.com/{id}</code> where <code>{id}</code> is the ID of a Facebook user, we can use our GUI to easily construct the link <code>friends</code> that will take us to <code>https://graph.facebook.com/{id}/friends</code>, which in turn contains a list of users with their IDs. For each of those we can construct a self-link to <code>https://graph.facebook.com/{id}</code>.</p>
+<p>A minor quirk of the Facebook Graph API is that all different kinds of basic resources are at <code>graph.facebook.com/{id}</code>, instead of e.g. <code>graph.facebook.com/user/{id}</code> and <code>graph.facebook.com/event/{id}</code>. However, this poses no problem to our tool.</p></li>
+<li><p>The <a href="https://www.flickr.com/services/api/">Flickr API</a> serves as an example of an RPC-style API where always the same URL path is used but the resource is selected with the <code>method</code> query parameter. For example, to search Flickr for cat pictures, this cumbersome scheme is the way to do it:</p>
+<pre><code>https://api.flickr.com/services/rest/?method=flickr.photos.search
+&amp;format=json&amp;nojsoncallback=1&amp;text=cat</code></pre></li>
+<li><p>The <a href="http://developer.rottentomatoes.com/">Rotten Tomatoes API</a> (v1.0) is almost a hypermedia API. While it doesn’t use a well-defined media type (in fact, the <code>Content-Type</code> header is <code>text/javascript</code>), the JSON objects returned contain HAL-like <code>links</code> objects.</p></li>
+</ol>
+<p>These three APIs seem to cover a reasonably broad spectrum of currently online public Web APIs. As such, we were pleased to see that mapping them with our tool was quite straightforward and fast.</p>
+<p>Our choice of modelling Entity Classes separately from Endpoints especially paid off in the Facebook and Rotten Tomatoes API, as various endpoints return the same kind of <code>User</code> and <code>Movie</code> objects respectively, thus speeding up the mapping of the APIs considerably. However, in the case of the Flickr API, which unfortunately uses slightly different JSON representations for the same photo on different endpoints (e.g. <code>flickr.photos.search</code> vs. <code>flickr.photos.getInfo</code>), this choice turned out to have the downside that not all link definitions worked on entities returned by all endpoints. Of course, while kind of defeating the purpose, this could be avoided by creating a new photo Entity Class for each endpoint.</p>
+<h3 id="comparison-with-soapui-and-postman">Comparison with SoapUI and Postman</h3>
+<p>In terms of GUIs that allow the user to create a representation of an existing API, SoapUI and Postman seem the two pieces of software that are most comparable to our tool.</p>
+<p>However, as can be seen in the table below, while the feature-set is overlapping, it is not the same. Our tool does not provide much specific help in testing APIs, while SoapUI and Postman do. On the other hand, our tool provides a uniform wrapper API while SoapUI and Postman don’t. Also, SoapUI provides a larger number of features in comparison to Postman and our tool, which explains SoapUI’s complex GUI at least to a limited extent.</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: left;">Our tool</th>
+<th style="text-align: left;">SoapUI</th>
+<th style="text-align: left;">Postman</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Test APIs</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">x</td>
+<td style="text-align: left;">x</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Support for OAuth</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">x</td>
+<td style="text-align: left;">x</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Model endpoints with parameters</td>
+<td style="text-align: left;">x</td>
+<td style="text-align: left;">x</td>
+<td style="text-align: left;">x</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Model global parameters for all endpoints</td>
+<td style="text-align: left;">x</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><a href="http://www.getpostman.com/docs/environments">partial</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Model EntityClasses</td>
+<td style="text-align: left;">x</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Model links between resources</td>
+<td style="text-align: left;">x</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Serve wrapper API</td>
+<td style="text-align: left;">x</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Export to Swagger file</td>
+<td style="text-align: left;">x</td>
+<td style="text-align: left;">x</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Export to WADL</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">x</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Support for JSON APIs</td>
+<td style="text-align: left;">x</td>
+<td style="text-align: left;">x</td>
+<td style="text-align: left;">x</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Support for XML APIs</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">x</td>
+<td style="text-align: left;">x</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Inspect raw HTTP requests</td>
+<td style="text-align: left;">*</td>
+<td style="text-align: left;">x</td>
+<td style="text-align: left;">*</td>
+</tr>
+</tbody>
+</table>
+<p>* with the browser’s developer tools</p>
+<p>As will be discussed in the section <a href="#further-work">Further Work</a>, exporting to WADL, adding support for OAuth (or even XML-based APIs if so desired) could be added to our tool.</p>
+<h3 id="usability">Usability</h3>
+<p>All in all, we are very satisfied with the relative ease and pleasantness with which the rather complex task of mapping every possible JSON API, and retrieving all the data it offers, can be accomplished with our GUI tool. A mapping of the couple of endpoints a user is interested in for any given API can be achieved within minutes and is immediately useful—deployment is as easy as clicking the “Save API” button.</p>
+<p>We considered using the KLM-GOMS model <span class="citation"><a href="#ref-kieras">(<span class="ref-contributor">Kieras</span> 1993)</a></span> to compare the time it would take a user to perform various actions in the GUI in our tool and in SoapUI. However, we found there was very little overlap in directly comparable tasks. The advantage of our GUI lies in its relative simplicity, discoverability of operations, and tightly integrating the exploring and mapping of Web APIs unknown to the user. These are all things GOMS models are not well suited to measure.</p>
+<h3 id="using-hypermedia">Using Hypermedia</h3>
+<p>By using HAL, a standardized hypermedia format, our wrapper API can be embedded seamlessly in a wider ecosystem of hypermedia APIs within an organization. In many cases, clients don't need to be recompiled, or otherwise updated, as they can dynamically follow the links to find the entities mapped by the user. Apparently, our tool is the first designed to access existing Web APIs as if they were hypermedia APIs <span class="citation"><a href="#ref-amundsen-tweet">(<span class="ref-contributor">Amundsen</span> 2014)</a></span>.</p>
+<p>We made the conscious decision to not model the JSON schema but stop drilling down when we have arrived at a JSON blob that represents an individual semantic entity. For example, once we have a JSON object representing a <code>Movie</code>, we don't force or let the use specify that the <code>title</code> field contains a string and the <code>release</code> field a date. Avoiding the nitty-gritty of the semantic and format of each field reduces the complexity of our tool considerably. This simplistic model works especially well when the client isn’t interested in the exact schema of the data anyhow. As for example in Silk’s use-case of accessing the wrapper API with a generic client to simply import all resources exposed by the API into their own schema-less database without worrying about types, and exact response format. </p>
+<h2 id="further-work">Further Work</h2>
+<p>Our basic prototype demonstrates the usefulness of the approach chosen. However, it could obviously be expanded to include support for OAuth, export to more IDL formats like WADL and offer wrapper APIs in more hypermedia formats. Support for XML-based Web APIs could be added, but seems not to be a primary concern since the tooling for traditional XML APIs is already very strong while Hypermedia APIs tend to not support XML anyway.</p>
+<p>Also, currently we only support fetching data through HTTP GETs. But in principle, the GUI could be extended to support other HTTP verbs such as POST, PUT and DELETE, and the wrapper API would expose those in a suitable hypermedia formats to not only enable downloading, but also uploading compatible entities. </p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Most public Web APIs currently have no machine-readable documentation: they neither have an IDL file (Interface Description Language, like e.g. WSDL), nor are they proper REST APIs as defined by Fielding when he coined the term—i.e. they don’t include enough in-band information either. This makes it very hard to write a generic tool to import data from a multitude of Web APIs into a user’s own database. Without resorting to writing and maintaining a separate client for each of them, that is.</p>
+<p>Our tool helps in taming the various JSON-based REST-like APIs out there. It consists of two closely integrated parts.</p>
+<ul>
+<li>Client-side: a web-based GUI to navigate and map any kind of JSON-based Web API. The user is able to easily build up an IDL-like representation of the API within minutes.</li>
+<li>Server-side: a HAL-compliant hypermedia wrapper Web API which uses the user-created representations to expose the mapped APIs through a uniform interface—something that to our knowledge hasn’t been done before.</li>
+</ul>
+<p>The representation of the APIs can also be exported to the Swagger 2.0 IDL format. However, the preferred way is to access our wrapper Web API. Because it relies on HAL, a standardized hypermedia format, generic clients can be used to access our API and follow its links dynamically, needing little or no updates when the API changes.</p>
+<p>In terms of the GUI, we feel that we have achieved a reasonable compromise between simplicity and the complexity that comes with genericness. A user is able to model virtually all JSON-based Web APIs, while having still an interface that is by far less complex than the most comparable tool: SoapUI.</p>
+<p>Our tool allows users to map upstream APIs in minutes. Changes are reflected instantly in the wrapper API. The client doesn’t need to be changed or updated at all. Suddenly, it is feasible, even for teams with very limited resources, to keep track of dozens of APIs that frequently roll out new versions. </p>
+<div class="references">
+<h2>Bibliography</h2>
+<div id="ref-amazonAppStream">
+<p>“Amazon AppStream REST API.” 2013. <a href="http://docs.aws.amazon.com/appstream/latest/developerguide/rest-api.html" class="uri">http://docs.aws.amazon.com/appstream/latest/developerguide/rest-api.html</a> (Visited on July 4, 2014).</p>
+</div>
+<div id="ref-amundsen-tweet">
+<p><span class="ref-contributor">Amundsen, Mike</span>. 2014. “Mike Amundsen on Twitter About Hypermedia Wrapper APIs.” <a href="https://twitter.com/mamund/status/512266361369018368" class="uri">https://twitter.com/mamund/status/512266361369018368</a> (Visited on October 28, 2014).</p>
+</div>
+<div id="ref-avro">
+<p>“Apache Avro.” <a href="http://avro.apache.org/docs/current/" class="uri">http://avro.apache.org/docs/current/</a> (Visited on October 2, 2014).</p>
+</div>
+<div id="ref-fielding2000">
+<p><span class="ref-contributor">Fielding, Roy Thomas</span>. 2000. “Architectural Styles and the Design of Network-Based Software Architectures.” <a href="http://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm" class="uri">http://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm</a> (Visited on June 20, 2014).</p>
+</div>
+<div id="ref-fielding2008">
+<p><span class="ref-contributor">———</span>. 2008a. “Untangled: REST APIs Must Be Hypertext-Driven.” <a href="http://roy.gbiv.com/untangled/2008/rest-apis-must-be-hypertext-driven" class="uri">http://roy.gbiv.com/untangled/2008/rest-apis-must-be-hypertext-driven</a> (Visited on June 20, 2014).</p>
+</div>
+<div id="ref-fielding2008-2">
+<p><span class="ref-contributor">———</span>. 2008b. “Untangled: Specialization.” <a href="http://roy.gbiv.com/untangled/2008/specialization" class="uri">http://roy.gbiv.com/untangled/2008/specialization</a> (Visited on June 20, 2014).</p>
+</div>
+<div id="ref-gamache2014">
+<p><span class="ref-contributor">Gamache, Pete</span>. 2014. “Pragmatic Hypermedia: Creating a Generic, Self-Inflating API Client for Production Use.” <a href="http://petegamache.com/wsrest2014-gamache.pdf" class="uri">http://petegamache.com/wsrest2014-gamache.pdf</a> (Visited on October 3, 2014).</p>
+</div>
+<div id="ref-probuffs">
+<p>“Google Developers: Protocol Buffers.” <a href="https://developers.google.com/protocol-buffers/" class="uri">https://developers.google.com/protocol-buffers/</a> (Visited on October 2, 2014).</p>
+</div>
+<div id="ref-google-trends-soap-rest">
+<p>“Google Trends: XML API, JSON API, SOAP API, REST API.” 2014. <a href="http://www.google.com/trends/explore#q=xml%20api%2C%20json%20api%2C%20soap%20api%2C%20rest%20api">http://www.google.com/trends/explore#q=xml%20api%2C%20json%20api%2C%20soap%20api%2C%20rest%20api</a> (Visited on October 22, 2014).</p>
+</div>
+<div id="ref-google-json-ld">
+<p>“Google Webmaster Tools: Musical Artists.” 2014. <a href="https://support.google.com/webmasters/answer/4620133" class="uri">https://support.google.com/webmasters/answer/4620133</a> (Visited on November 4, 2014).</p>
+</div>
+<div id="ref-hal-discuss2013">
+<p>“HAL Discuss Mailing List.” 2013. <a href="https://groups.google.com/forum/#!topic/hal-discuss/kqiF3EdobTU" class="uri">https://groups.google.com/forum/#!topic/hal-discuss/kqiF3EdobTU</a> (Visited on July 4, 2014).</p>
+</div>
+<div id="ref-hal-browser">
+<p>“HAL-Browser.” 2014. <a href="https://github.com/mikekelly/hal-browser" class="uri">https://github.com/mikekelly/hal-browser</a> (Visited on September 16, 2014).</p>
+</div>
+<div id="ref-kelly2011">
+<p>“HAL: The Hypertext Application Language.” 2011. <a href="http://stateless.co/hal_specification.html" class="uri">http://stateless.co/hal_specification.html</a> (Visited on July 4, 2014).</p>
+</div>
+<div id="ref-hygeragent">
+<p><span class="ref-contributor">Hartig, Pascal</span>. 2013. “Hyperagent.js.” <a href="http://weluse.github.io/hyperagent/" class="uri">http://weluse.github.io/hyperagent/</a> (Visited on October 3, 2014).</p>
+</div>
+<div id="ref-iana-link-relations">
+<p>“IANA Link Relations.” <a href="http://www.iana.org/assignments/link-relations/link-relations.xhtml" class="uri">http://www.iana.org/assignments/link-relations/link-relations.xhtml</a> (Visited on October 29, 2014).</p>
+</div>
+<div id="ref-hal">
+<p><em>IETF Internet-Draft: JSON Hypertext Application Language</em>. 2014. <a href="http://tools.ietf.org/html/draft-kelly-json-hal-06" class="uri">http://tools.ietf.org/html/draft-kelly-json-hal-06</a> (Visited on July 4, 2014).</p>
+</div>
+<div id="ref-jspath">
+<p>“JSPath.” 2012. <a href="https://github.com/dfilatov/jspath" class="uri">https://github.com/dfilatov/jspath</a> (Visited on September 1, 2014).</p>
+</div>
+<div id="ref-kieras">
+<p><span class="ref-contributor">Kieras, David</span>. 1993. “Using the Keystroke-Level Model to Estimate Execution Times.” <a href="http://courses.wccnet.edu/~jwithrow/docs/klm.pdf" class="uri">http://courses.wccnet.edu/~jwithrow/docs/klm.pdf</a> (Visited on October 8, 2014).</p>
+</div>
+<div id="ref-klabnik2012">
+<p><span class="ref-contributor">Klabnik, Steve</span>. 2012. “REST Is over!” <a href="http://blog.steveklabnik.com/posts/2012-02-23-rest-is-over" class="uri">http://blog.steveklabnik.com/posts/2012-02-23-rest-is-over</a> (Visited on June 27, 2014).</p>
+</div>
+<div id="ref-krishnan2010">
+<p><span class="ref-contributor">Krishnan, Dilip</span>. 2010. “Is Proliferation of Custom Media Types RESTFul?” <a href="http://www.infoq.com/news/2010/01/subbu-custom-media-types" class="uri">http://www.infoq.com/news/2010/01/subbu-custom-media-types</a> (Visited on June 20, 2014).</p>
+</div>
+<div id="ref-kumar2009">
+<p><span class="ref-contributor">Kumar, Suresh</span>. 2009. “Stack Overflow: REST Media Type Explosion, Answer #1112986.” <a href="http://stackoverflow.com/questions/880881/rest-media-type-explosion/1112986#1112986" class="uri">http://stackoverflow.com/questions/880881/rest-media-type-explosion/1112986#1112986</a> (Visited on June 20, 2014).</p>
+</div>
+<div id="ref-hydra2013">
+<p><span class="ref-contributor">Lanthaler, Markus</span>. 2013. “Hydra: A Vocabulary for Hypermedia-Driven Web APIs.” <a href="http://www.markus-lanthaler.com/research/hydra-a-vocabulary-for-hypermedia-driven-web-apis.pdf" class="uri">http://www.markus-lanthaler.com/research/hydra-a-vocabulary-for-hypermedia-driven-web-apis.pdf</a> (Visited on July 7, 2014).</p>
+</div>
+<div id="ref-lensmar2014">
+<p><span class="ref-contributor">Lensmar, Ole</span>. 2014. “Another API-Blueprint, RAML and Swagger Comparison.” <a href="http://www.slideshare.net/SmartBear_Software/api-strat-2014metadataformatsshort" class="uri">http://www.slideshare.net/SmartBear_Software/api-strat-2014metadataformatsshort</a> (Visited on September 9, 2014).</p>
+</div>
+<div id="ref-ldp">
+<p>“Linked Data Platform 1.0.” 2014. <a href="http://www.w3.org/TR/ldp/" class="uri">http://www.w3.org/TR/ldp/</a> (Visited on September 15, 2014).</p>
+</div>
+<div id="ref-rest-vs-soap">
+<p><span class="ref-contributor">Mason, Ross</span>. 2011. “How REST Replaced SOAP on the Web.” <a href="http://www.infoq.com/articles/rest-soap" class="uri">http://www.infoq.com/articles/rest-soap</a> (Visited on October 22, 2014).</p>
+</div>
+<div id="ref-mnot2011">
+<p><span class="ref-contributor">Nottingham, Mark</span>. 2011. “Linking in JSON.” <a href="https://www.mnot.net/blog/2011/11/25/linking_in_json" class="uri">https://www.mnot.net/blog/2011/11/25/linking_in_json</a> (Visited on June 20, 2014).</p>
+</div>
+<div id="ref-postman">
+<p>“Postman.” <a href="http://www.getpostman.com" class="uri">http://www.getpostman.com</a> (Visited on November 4, 2014).</p>
+</div>
+<div id="ref-swaggersocket-rfc6570">
+<p><span class="ref-contributor">Ratovsky, Ron</span>. 2014. “Swagger Google Groups: What’s the Status of Swagger 2.0.” <a href="https://groups.google.com/forum/#!msg/swagger-swaggersocket/YMx_NeT_9aA/ujfpP1Yyjs0J" class="uri">https://groups.google.com/forum/#!msg/swagger-swaggersocket/YMx_NeT_9aA/ujfpP1Yyjs0J</a> (Visited on September 9, 2014).</p>
+</div>
+<div id="ref-rdf">
+<p>“RDF 1.1 Concepts and Abstract Syntax.” <a href="http://www.w3.org/TR/rdf11-concepts/" class="uri">http://www.w3.org/TR/rdf11-concepts/</a> (Visited on October 29, 2014).</p>
+</div>
+<div id="ref-rfc5988">
+<p>“RFC 5988: Web Linking.” 2010. <a href="http://tools.ietf.org/html/rfc5988" class="uri">http://tools.ietf.org/html/rfc5988</a> (Visited on September 2, 2014).</p>
+</div>
+<div id="ref-rfc6570">
+<p>“RFC 6570: URI Template.” 2012. <a href="http://tools.ietf.org/html/rfc6570" class="uri">http://tools.ietf.org/html/rfc6570</a> (Visited on September 1, 2014).</p>
+</div>
+<div id="ref-silk-partners">
+<p>“Silk Partners.” <a href="http://partners.silk.co/" class="uri">http://partners.silk.co/</a> (Visited on November 4, 2014).</p>
+</div>
+<div id="ref-soapui-rest">
+<p>“SoapUI: SOAP Vs. REST Challenges.” 2014. <a href="http://www.soapui.org/The-World-Of-API-Testing/soap-vs-rest-challenges.html" class="uri">http://www.soapui.org/The-World-Of-API-Testing/soap-vs-rest-challenges.html</a> (Visited on October 22, 2014).</p>
+</div>
+<div id="ref-swagger2">
+<p>“Swagger 2.0 Spec.” 2014. <a href="https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md" class="uri">https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md</a> (Visited on September 9, 2014).</p>
+</div>
+<div id="ref-opengraph">
+<p>“The Open Graph Protocol.” 2010. <a href="http://ogp.me/" class="uri">http://ogp.me/</a> (Visited on October 29, 2014).</p>
+</div>
+<div id="ref-thrift">
+<p>“Thrift: Scalable Cross-Language Services Implementation.” 2007. <a href="https://thrift.apache.org/static/files/thrift-20070401.pdf" class="uri">https://thrift.apache.org/static/files/thrift-20070401.pdf</a> (Visited on October 2, 2014).</p>
+</div>
+<div id="ref-tilkov2011">
+<p><span class="ref-contributor">Tilkov, Stefan</span>. 2011. “Media Types in RESTful HTTP.” <a href="http://www.innoq.com/blog/st/2011/12/media-types/" class="uri">http://www.innoq.com/blog/st/2011/12/media-types/</a> (Visited on June 20, 2014).</p>
+</div>
+<div id="ref-twittertimelines">
+<p>“Twitter Developers: Working with Timelines.” <a href="https://dev.twitter.com/rest/public/timelines" class="uri">https://dev.twitter.com/rest/public/timelines</a> (Visited on October 8, 2014).</p>
+</div>
+<div id="ref-json-ld">
+<p><em>W3C Recommendation: JSON-LD 1.0</em>. 2014. <a href="http://www.w3.org/TR/json-ld/" class="uri">http://www.w3.org/TR/json-ld/</a> (Visited on July 2, 2014).</p>
+</div>
+<div id="ref-hydra">
+<p><em>W3C Unofficial Draft: Hydra Core Vocabulary</em>. 2014. <a href="http://www.hydra-cg.com/spec/latest/core/" class="uri">http://www.hydra-cg.com/spec/latest/core/</a> (Visited on July 2, 2014).</p>
+</div>
+<div id="ref-curie">
+<p><em>W3C Working Group Note: CURIE Syntax 1.0</em>. 2010. <a href="http://www.w3.org/TR/2010/NOTE-curie-20101216/" class="uri">http://www.w3.org/TR/2010/NOTE-curie-20101216/</a> (Visited on July 4, 2014).</p>
+</div>
+</div>
+</body>
+</html>
