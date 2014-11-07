@@ -1,5 +1,15 @@
 # API Explorer
 
+This is a tool which provides a web-based GUI to map any JSON-based REST-like API within minutes, and subsequently access the mapped APIs through a HAL-compliant wrapper hypermedia API, and thus in a uniform manner.
+
+Read the whole thesis: 
+[HTML](http://mb21.github.io/api-explorer/a-web-based-tool-to-semi-automatically-import-data-from-generic-rest-apis.html),
+[PDF](http://mb21.github.io/api-explorer/a-web-based-tool-to-semi-automatically-import-data-from-generic-rest-apis.pdf).
+
+![Screenshot](http://mb21.github.io/api-explorer/images/screenshot.jpg)
+
+### Getting started
+
 1. Install:
     1. [Node.js](http://nodejs.org/)
     2. [MongoDB](https://www.mongodb.org).
