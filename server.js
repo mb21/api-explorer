@@ -11,7 +11,7 @@ var config = require('./config');
 var silkExport = require('./silkExport');
 
 var app = express();
-var db = mongojs.connect("apis", ["apis"]);
+var db = mongojs("apis", ["apis"]);
 
 app.use( bodyParser.json() );
 app.set('json spaces', 4); //prettify json
