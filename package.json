@@ -16,7 +16,7 @@
     "httpinvoke": "^1.3.0",
     "jsonld": "^0.2.13",
     "jspath": "^0.2.12",
-    "mongojs": "^0.13.0",
+    "mongojs": "~2.5.0",
     "q": "^1.0.1",
     "silk-api-client": "^2.0.0",
     "underscore": "^1.6.0",
